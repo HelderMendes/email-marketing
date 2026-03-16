@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url      = env("DATABASE_URL") // breaking change in Prisma ORM version 7.
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  status    String   @default("SUBSCRIBED") // SUBSCRIBED, UNSUBSCRIBED
+  source    String   @default("FORM") // FORM, MANUAL, API
+  tags      String? // Comma separated tags if needed, or structured differently
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sentEmails CampaignEmail[]
+}
+
+model Campaign {
+  id          Int       @id @default(autoincrement())
+  name        String
+  subject     String
+  htmlContent String?
+  status      String    @default("DRAFT") // DRAFT, SENT, SCHEDULED
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  emails CampaignEmail[]
+}
+
+model CampaignEmail {
+  id         Int      @id @default(autoincrement())
+  campaignId Int
+  contactId  Int
+  status     String   @default("SENT") // SENT, OPENED, CLICKED
+  sentAt     DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  contact  Contact  @relation(fields: [contactId], references: [id])
+}
+
+model ApiKey {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  active    Boolean  @default(true)
+}

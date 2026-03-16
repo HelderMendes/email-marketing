@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lookout Mode Mail
 
-## Getting Started
+A custom email marketing platform built with Next.js 16, TypeScript, Tailwind CSS, and Prisma.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Contacts Management**: Admin panel to view, filter, and manage contacts.
+- **Campaign Management**: Create, view, replicate, and manage email campaigns.
+- **Subscription Form**: Embeddable form for `lookoutmode.nl` integration.
+- **Email Viewing**: Public "View in Browser" pages for campaigns.
+- **API**: RESTful API for integration.
+
+## Setup
+
+1.  **Install Dependencies**:
+
+    ```bash
+    npm install
+    ```
+
+2.  **Database Setup**:
+    This project uses SQLite for development.
+
+    ```bash
+    npx prisma migrate dev --name init
+    ```
+
+3.  **Run Development Server**:
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000) to see the subscription form.
+    Open [http://localhost:3000/admin/contacts](http://localhost:3000/admin/contacts) for Contacts Admin.
+    Open [http://localhost:3000/admin/campaigns](http://localhost:3000/admin/campaigns) for Campaigns Admin.
+
+## API Integration
+
+### Subscribe Endpoint
+
+**POST** `/api/subscribe`
+Body:
+
+```json
+{
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe"
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### External Integration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To integrate the form on `lookoutmode.nl`, you can post directly to the `/api/subscribe` endpoint if CORS allows, or use the provided React component `components/subscribe-form.tsx`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Structure
 
-## Learn More
+- `app/admin/`: Admin dashboard pages.
+- `app/api/`: API routes.
+- `components/`: UI components (shadcn/ui) and feature components.
+- `prisma/`: Database schema.
+- `lib/`: Utilities (Prisma client).
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1.  Set `DATABASE_URL` env var (e.g. to Postgres connection string).
+2.  Run `npx prisma migrate deploy` in build pipeline.
+3.  Build with `npm run build`.
+4.  Start with `npm start`.
