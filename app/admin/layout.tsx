@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ModeToggle } from '@/components/ModeToggle';
 
 export default function AdminLayout({
     children,
@@ -33,6 +34,9 @@ export default function AdminLayout({
                     <Button variant='ghost' asChild>
                         <Link href='/'>Public View</Link>
                     </Button>
+                </div>
+                <div className='ml-auto flex items-center gap-4'>
+                    <ModeToggle />
                 </div>
             </header>
             <main className='flex-1 p-6 md:p-8'>{children}</main>

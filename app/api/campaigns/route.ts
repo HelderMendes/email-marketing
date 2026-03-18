@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { name, subject, htmlContent } = body;
+        const { name, subject, htmlContent, theme } = body;
 
         if (!name) {
             return NextResponse.json(
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
                 name,
                 subject: subject || 'No Subject',
                 htmlContent: htmlContent || '',
+                theme: theme || undefined,
                 status: 'DRAFT',
             },
         });

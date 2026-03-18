@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
-        const { email, firstName, lastName } = await request.json();
+        const { email, firstName, lastName, consent } = await request.json();
 
         if (!email) {
             return NextResponse.json(
@@ -12,22 +12,33 @@ export async function POST(request: Request) {
             );
         }
 
-        const contact = await prisma.contact.create({
-            data: {
+        const contact = await prisma.contact.upsert({
+            where: { email },
+            update: {
+                firstName,
+                lastName,
+                status: 'SUBSCRIBED',
+                source: 'FORM',
+                consentGiven: consent,
+                consentDate: consent ? new Date() : undefined,
+                updatedAt: new Date(),
+            },
+            create: {
                 email,
                 firstName,
                 lastName,
                 source: 'FORM',
                 status: 'SUBSCRIBED',
+                consentGiven: consent,
+                consentDate: consent ? new Date() : undefined,
             },
         });
 
         return NextResponse.json({ success: true, contactId: contact.id });
     } catch (error) {
         console.error('Subscription error:', error);
-        // Handle unique constraint error
         return NextResponse.json(
-            { error: 'Failed to subscribe or already subscribed' },
+            { error: 'Failed to subscribe' },
             { status: 500 },
         );
     }

@@ -10,19 +10,22 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // url      = env("DATABASE_URL") // breaking change in Prisma ORM version 7.
+  // url      = env("DATABASE_URL")
 }
 
 model Contact {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  firstName String?
-  lastName  String?
-  status    String   @default("SUBSCRIBED") // SUBSCRIBED, UNSUBSCRIBED
-  source    String   @default("FORM") // FORM, MANUAL, API
-  tags      String? // Comma separated tags if needed, or structured differently
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               Int       @id @default(autoincrement())
+  email            String    @unique
+  firstName        String?
+  lastName         String?
+  status           String    @default("SUBSCRIBED") // SUBSCRIBED, UNSUBSCRIBED
+  source           String    @default("FORM") // FORM, MANUAL, API
+  tags             String? // Comma separated tags if needed, or structured differently
+  consentGiven     Boolean   @default(false)
+  consentDate      DateTime?
+  unsubscribeToken String    @unique @default(uuid())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   sentEmails CampaignEmail[]
 }
@@ -32,6 +35,7 @@ model Campaign {
   name        String
   subject     String
   htmlContent String?
+  theme       Json? // Stores theme configuration (colors, etc.)
   status      String    @default("DRAFT") // DRAFT, SENT, SCHEDULED
   scheduledAt DateTime?
   sentAt      DateTime?

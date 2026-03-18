@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,20 +8,32 @@ import { Loader2 } from 'lucide-react';
 
 export function SubscribeForm() {
     const [isLoading, setIsLoading] = useState(false);
+    const formRef = useRef<HTMLFormElement>(null);
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        setIsLoading(true);
 
+        // Basic spam protection (honeypot)
         const formData = new FormData(event.currentTarget);
+        const honeypot = formData.get('website_url'); // Hidden field
+
+        if (honeypot) {
+            // Silently succeed for bots
+            alert('Bedankt voor het abonneren!');
+            formRef.current?.reset();
+            return;
+        }
+
+        setIsLoading(true);
         const email = formData.get('email') as string;
         const firstName = formData.get('firstName') as string;
         const lastName = formData.get('lastName') as string;
+        const consent = formData.get('consent') === 'on';
 
         try {
             const response = await fetch('/api/subscribe', {
                 method: 'POST',
-                body: JSON.stringify({ email, firstName, lastName }),
+                body: JSON.stringify({ email, firstName, lastName, consent }),
                 headers: { 'Content-Type': 'application/json' },
             });
 
@@ -30,7 +42,7 @@ export function SubscribeForm() {
             }
 
             alert('Bedankt voor het abonneren!');
-            event.currentTarget.reset();
+            formRef.current?.reset();
         } catch (error) {
             alert('Er ging iets mis. Probeer het later opnieuw.');
         } finally {
@@ -50,7 +62,19 @@ export function SubscribeForm() {
                 Lijst voor aanbiedingen, nieuwtjes en speciale offers
             </div>
 
-            <form onSubmit={onSubmit} className='space-y-6'>
+            <form ref={formRef} onSubmit={onSubmit} className='space-y-6'>
+                {/* Honeypot field for spam protection */}
+                <div style={{ display: 'none' }} aria-hidden='true'>
+                    <label htmlFor='website_url'>Website</label>
+                    <input
+                        type='text'
+                        name='website_url'
+                        id='website_url'
+                        tabIndex={-1}
+                        autoComplete='off'
+                    />
+                </div>
+
                 <div className='space-y-2'>
                     <Label
                         htmlFor='email'
@@ -95,6 +119,24 @@ export function SubscribeForm() {
                         type='text'
                         className='bg-white border-gray-300 rounded-none h-10 shadow-sm text-base'
                     />
+                </div>
+
+                <div className='flex items-start space-x-2'>
+                    <input
+                        type='checkbox'
+                        id='consent'
+                        name='consent'
+                        required
+                        className='mt-1 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500'
+                    />
+                    <Label
+                        htmlFor='consent'
+                        className='text-sm text-gray-700 leading-tight font-normal'
+                    >
+                        Ik wil graag op de hoogte blijven van de laatste
+                        nieuwtjes, leuke acties en gave nieuwe collecties van
+                        LOOK OUT Mode.
+                    </Label>
                 </div>
 
                 <Button
