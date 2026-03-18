@@ -1,19 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import { NextResponse } from 'next/server';
 import { renderEmailHtml, EmailTheme } from '@/lib/email-renderer';
 
-export default async function ViewCampaignPage({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}) {
+export async function GET(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
     const { id } = await params;
     const campaign = await prisma.campaign.findUnique({
         where: { id: parseInt(id) },
     });
 
     if (!campaign) {
-        notFound();
+        return new NextResponse('Not found', { status: 404 });
     }
 
     const html = renderEmailHtml(
@@ -21,5 +20,9 @@ export default async function ViewCampaignPage({
         (campaign.theme as unknown as EmailTheme) || undefined,
     );
 
-    return <div dangerouslySetInnerHTML={{ __html: html }} />;
+    return new NextResponse(html, {
+        headers: {
+            'Content-Type': 'text/html',
+        },
+    });
 }
