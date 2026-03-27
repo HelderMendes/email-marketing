@@ -34,7 +34,7 @@ export async function PATCH(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { name, htmlContent, subject, status, theme } = body;
+        const { name, htmlContent, subject, previewText, status, theme } = body;
 
         const campaign = await prisma.campaign.update({
             where: { id: parseInt(id) },
@@ -42,6 +42,7 @@ export async function PATCH(
                 name,
                 htmlContent,
                 subject,
+                previewText,
                 status,
                 theme: theme || undefined, // Update theme if present
             },

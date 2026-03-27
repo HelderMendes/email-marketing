@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useState } from 'react';
 import {
     ColumnDef,
     flexRender,
@@ -11,7 +12,6 @@ import {
     SortingState,
     getFilteredRowModel,
     ColumnFiltersState,
-    VisibilityState,
     OnChangeFn,
 } from '@tanstack/react-table';
 
@@ -38,6 +38,7 @@ interface DataTableProps<TData, TValue> {
     manualPagination?: boolean;
     sorting?: SortingState;
     onSortingChange?: OnChangeFn<SortingState>;
+    onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -50,11 +51,12 @@ export function DataTable<TData, TValue>({
     manualPagination = false,
     sorting: externalSorting,
     onSortingChange: externalOnSortingChange,
+    onRowClick,
 }: DataTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] =
-        React.useState<ColumnFiltersState>([]);
-    const [internalRowSelection, setInternalRowSelection] = React.useState<
+    'use no memo';
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [internalRowSelection, setInternalRowSelection] = useState<
         Record<string, boolean>
     >({});
 
@@ -134,6 +136,12 @@ export function DataTable<TData, TValue>({
                                     key={row.id}
                                     data-state={
                                         row.getIsSelected() && 'selected'
+                                    }
+                                    onClick={() => onRowClick?.(row.original)}
+                                    className={
+                                        onRowClick
+                                            ? 'cursor-pointer hover:bg-muted/50'
+                                            : ''
                                     }
                                 >
                                     {row.getVisibleCells().map((cell) => (

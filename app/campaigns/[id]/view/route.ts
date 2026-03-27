@@ -4,7 +4,7 @@ import { renderEmailHtml, EmailTheme } from '@/lib/email-renderer';
 
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: Promise<{ id: string }> },
 ) {
     const { id } = await params;
     const campaign = await prisma.campaign.findUnique({
@@ -18,6 +18,7 @@ export async function GET(
     const html = renderEmailHtml(
         campaign.htmlContent || '',
         (campaign.theme as unknown as EmailTheme) || undefined,
+        { campaignId: campaign.id },
     );
 
     return new NextResponse(html, {

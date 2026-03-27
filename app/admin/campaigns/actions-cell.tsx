@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreHorizontal, Edit, Copy, Trash, Eye, Pencil } from 'lucide-react';
+import {
+    MoreHorizontal,
+    Edit,
+    Copy,
+    Trash,
+    Eye,
+    Pencil,
+    Send,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -20,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SendCampaignDialog } from '@/components/send-campaign-dialog';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { SerializedCampaign } from './types';
@@ -27,6 +36,7 @@ import { SerializedCampaign } from './types';
 export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
     const router = useRouter();
     const [isRenameOpen, setIsRenameOpen] = useState(false);
+    const [isSendOpen, setIsSendOpen] = useState(false);
     const [newName, setNewName] = useState(campaign.name);
 
     const handleReplicate = async () => {
@@ -90,6 +100,11 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
                             <Eye className='mr-2 h-4 w-4' /> View Email
                         </Link>
                     </DropdownMenuItem>
+                    {campaign.status !== 'SENT' && (
+                        <DropdownMenuItem onClick={() => setIsSendOpen(true)}>
+                            <Send className='mr-2 h-4 w-4' /> Send Campaign
+                        </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setIsRenameOpen(true)}>
                         <Pencil className='mr-2 h-4 w-4' /> Rename
@@ -133,6 +148,14 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <SendCampaignDialog
+                campaignId={campaign.id}
+                campaignName={campaign.name}
+                open={isSendOpen}
+                onOpenChange={setIsSendOpen}
+                onComplete={() => router.refresh()}
+            />
         </>
     );
 }

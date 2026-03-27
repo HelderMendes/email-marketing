@@ -34,6 +34,7 @@ model Campaign {
   id          Int       @id @default(autoincrement())
   name        String
   subject     String
+  previewText String? // Shows in inbox preview
   htmlContent String?
   theme       Json? // Stores theme configuration (colors, etc.)
   status      String    @default("DRAFT") // DRAFT, SENT, SCHEDULED
@@ -42,7 +43,8 @@ model Campaign {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  emails CampaignEmail[]
+  emails  CampaignEmail[]
+  sendJob SendJob?
 }
 
 model CampaignEmail {
@@ -56,10 +58,37 @@ model CampaignEmail {
   contact  Contact  @relation(fields: [contactId], references: [id])
 }
 
+model SendJob {
+  id          Int       @id @default(autoincrement())
+  campaignId  Int       @unique
+  status      String    @default("PENDING") // PENDING, SENDING, PAUSED, COMPLETED, FAILED
+  totalCount  Int
+  sentCount   Int       @default(0)
+  failedCount Int       @default(0)
+  lastBatchAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
 model ApiKey {
   id        Int      @id @default(autoincrement())
   key       String   @unique
   name      String?
   createdAt DateTime @default(now())
   active    Boolean  @default(true)
+}
+
+model MediaFile {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  url       String
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  alt       String?
+  createdAt DateTime @default(now())
 }

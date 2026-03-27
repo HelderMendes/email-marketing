@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { columns } from './columns';
 import { SerializedContact } from './types';
 import { DataTable } from '@/components/ui/data-table';
 import { ContactActions } from './contact-actions';
+import { EditContactDialog } from './edit-contact-dialog';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -33,13 +34,14 @@ export function ContactsClient({
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>(
         {},
     );
+    const [selectedContact, setSelectedContact] =
+        useState<SerializedContact | null>(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // Clear selection when data (page) changes to prevent accidental actions
-    useEffect(() => {
-        setRowSelection({});
-    }, [data]);
+    // Generate a key from data to reset selection when page changes
+    const dataKey = data.map((c) => c.id).join(',');
 
     const sorting: SortingState = [{ id: sort, desc: order === 'desc' }];
 
@@ -142,6 +144,7 @@ export function ContactsClient({
                 </div>
             </div>
             <DataTable
+                key={dataKey}
                 columns={columns}
                 data={data}
                 searchKey='email'
@@ -151,6 +154,16 @@ export function ContactsClient({
                 manualPagination={true}
                 sorting={sorting}
                 onSortingChange={handleSortingChange}
+                onRowClick={(contact) => {
+                    setSelectedContact(contact);
+                    setEditDialogOpen(true);
+                }}
+            />
+
+            <EditContactDialog
+                contact={selectedContact}
+                open={editDialogOpen}
+                onOpenChange={setEditDialogOpen}
             />
         </div>
     );

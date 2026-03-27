@@ -39,7 +39,7 @@ export default function AdminLayout({
                     <ModeToggle />
                 </div>
             </header>
-            <main className='flex-1 p-6 md:p-8'>{children}</main>
+            <main className='flex-1 p-2 md:p-3'>{children}</main>
         </div>
     );
 }

@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/prisma';
-import { columns } from './columns';
 import { SerializedCampaign } from './types';
-import { DataTable } from '@/components/ui/data-table';
 import { CreateCampaignButton } from './create-campaign-button';
+import { CampaignsTable } from './campaigns-table';
 
 async function getCampaigns(): Promise<SerializedCampaign[]> {
     const data = await prisma.campaign.findMany({
@@ -28,7 +27,7 @@ export default async function CampaignsPage() {
                 <h1 className='text-2xl font-bold'>Campaigns Administration</h1>
                 <CreateCampaignButton />
             </div>
-            <DataTable columns={columns} data={data} searchKey='name' />
+            <CampaignsTable data={data} />
         </div>
     );
 }

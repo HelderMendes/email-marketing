@@ -155,20 +155,20 @@ export function ThemeSettings({
                                 <Input
                                     type='color'
                                     className='w-12 h-10 p-1 cursor-pointer'
-                                    value={theme.preBodyBg || '#eef2f5'}
+                                    value={theme.emailHeaderBg || '#eef2f5'}
                                     onChange={(e) =>
                                         handleChange(
-                                            'preBodyBg',
+                                            'emailHeaderBg',
                                             e.target.value,
                                         )
                                     }
                                 />
                                 <Input
                                     type='text'
-                                    value={theme.preBodyBg || '#eef2f5'}
+                                    value={theme.emailHeaderBg || '#eef2f5'}
                                     onChange={(e) =>
                                         handleChange(
-                                            'preBodyBg',
+                                            'emailHeaderBg',
                                             e.target.value,
                                         )
                                     }
