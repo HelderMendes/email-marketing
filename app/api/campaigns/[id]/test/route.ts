@@ -1,9 +1,48 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
 import { renderEmailHtml, EmailTheme } from '@/lib/email-renderer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const SENDER_API_URL = 'https://api.sender.net/v2/message/send';
+
+/**
+ * Send email using Sender.net API
+ */
+async function sendWithSenderNet(options: {
+    to: string;
+    toName?: string;
+    subject: string;
+    html: string;
+}) {
+    const response = await fetch(SENDER_API_URL, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.SENDER_API_TOKEN}`,
+        },
+        body: JSON.stringify({
+            from: {
+                email: process.env.SENDER_FROM_EMAIL || 'hello@lookoutmode.nl',
+                name: process.env.SENDER_FROM_NAME || 'Look Out Mode',
+            },
+            to: {
+                email: options.to,
+                name: options.toName || options.to,
+            },
+            subject: options.subject,
+            html: options.html,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+            errorData.message || `Sender.net API error: ${response.status}`,
+        );
+    }
+
+    return response.json();
+}
 
 export async function POST(
     request: Request,
@@ -73,22 +112,36 @@ export async function POST(
             );
 
         console.log(
-            `[REAL TEST SEND] To: ${emailAddresses.join(', ')}, Subject: [TEST] ${campaign.subject}`,
+            `[TEST SEND] To: ${emailAddresses.join(', ')}, Subject: [TEST] ${campaign.subject}`,
         );
 
-        const result = await resend.emails.send({
-            from:
-                process.env.RESEND_FROM_EMAIL ||
-                'Lookout Mode <hello@helderdesign.nl>',
-            to: emailAddresses,
-            subject: `[TEST] ${campaign.subject || 'No Subject'}`,
-            html: emailHtml,
-        });
+        // Send to each email address (Sender.net API sends to one recipient at a time)
+        const results = [];
+        for (const addr of emailAddresses) {
+            try {
+                const result = await sendWithSenderNet({
+                    to: addr,
+                    subject: `[TEST] ${campaign.subject || 'No Subject'}`,
+                    html: emailHtml,
+                });
+                results.push({ email: addr, success: true, id: result.id });
+            } catch (err) {
+                console.error(`Failed to send to ${addr}:`, err);
+                results.push({
+                    email: addr,
+                    success: false,
+                    error: String(err),
+                });
+            }
+        }
 
-        if (result.error) {
-            console.error('Resend API Error:', result.error);
+        const allSuccess = results.every((r) => r.success);
+        if (!allSuccess) {
+            const failed = results.filter((r) => !r.success);
             return NextResponse.json(
-                { error: result.error.message },
+                {
+                    error: `Failed to send to: ${failed.map((f) => f.email).join(', ')}`,
+                },
                 { status: 400 },
             );
         }
@@ -96,7 +149,7 @@ export async function POST(
         return NextResponse.json({
             success: true,
             email: emailAddresses.join(', '),
-            id: result.data?.id,
+            results,
         });
     } catch (error) {
         console.error('Test Send error:', error);

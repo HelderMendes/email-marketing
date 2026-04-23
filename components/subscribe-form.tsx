@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
@@ -72,6 +73,7 @@ export function SubscribeForm() {
                         id='website_url'
                         tabIndex={-1}
                         autoComplete='off'
+                        className='text-red-800'
                     />
                 </div>
 
@@ -87,7 +89,8 @@ export function SubscribeForm() {
                         name='email'
                         type='email'
                         required
-                        className='bg-white border-gray-300 rounded-none h-10 shadow-sm text-base'
+                        className='bg-white border-gray-300 rounded-none h-10 shadow-sm text-base text-gray-700'
+                        placeholder='Je e-mailadres'
                     />
                 </div>
 
@@ -102,7 +105,8 @@ export function SubscribeForm() {
                         id='firstName'
                         name='firstName'
                         type='text'
-                        className='bg-white border-gray-300 rounded-none h-10 shadow-sm text-base'
+                        className='bg-white border-gray-300 rounded-none h-10 shadow-sm text-base text-gray-700'
+                        placeholder='Je voornaam'
                     />
                 </div>
 
@@ -117,26 +121,31 @@ export function SubscribeForm() {
                         id='lastName'
                         name='lastName'
                         type='text'
-                        className='bg-white border-gray-300 rounded-none h-10 shadow-sm text-base'
+                        className='bg-white border-gray-300 rounded-none h-10 shadow-sm text-base text-gray-700'
+                        placeholder='Je achternaam'
                     />
                 </div>
 
-                <div className='flex items-start space-x-2'>
-                    <input
-                        type='checkbox'
+                <div className='flex items-start gap-2'>
+                    <Checkbox
                         id='consent'
                         name='consent'
-                        required
-                        className='mt-1 h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500'
+                        defaultChecked
+                        className='mt-0.5 h-5 w-5 border-teal-600 data-[state=checked]:bg-transparent data-[state=checked]:border-teal-600 '
                     />
-                    <Label
-                        htmlFor='consent'
-                        className='text-sm text-gray-700 leading-tight font-normal'
-                    >
-                        Ik wil graag op de hoogte blijven van de laatste
-                        nieuwtjes, leuke acties en gave nieuwe collecties van
-                        LOOK OUT Mode.
-                    </Label>
+                    <div className='flex flex-col gap-1'>
+                        <Label
+                            htmlFor='consent'
+                            className='text-sm font-medium text-gray-900 leading-tight cursor-pointer'
+                        >
+                            Ja, ik wil me aanmelden
+                        </Label>
+                        <p className='text-xs text-gray-500 leading-relaxed'>
+                            Ik wil graag op de hoogte blijven van de laatste
+                            nieuwtjes, leuke acties en gave nieuwe collecties
+                            van LOOK OUT Mode.
+                        </p>
+                    </div>
                 </div>
 
                 <Button

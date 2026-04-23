@@ -1,11 +1,55 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
 import { renderEmailHtml, type EmailTheme } from '@/lib/email-renderer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
+const SENDER_API_URL = 'https://api.sender.net/v2/message/send';
 const BATCH_SIZE = 50;
+
+/**
+ * Send email using Sender.net API
+ */
+async function sendWithSenderNet(options: {
+    to: string;
+    toName?: string;
+    subject: string;
+    html: string;
+    listUnsubscribe?: string;
+}) {
+    const response = await fetch(SENDER_API_URL, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.SENDER_API_TOKEN}`,
+        },
+        body: JSON.stringify({
+            from: {
+                email: process.env.SENDER_FROM_EMAIL || 'hello@lookoutmode.nl',
+                name: process.env.SENDER_FROM_NAME || 'Look Out Mode',
+            },
+            to: {
+                email: options.to,
+                name: options.toName || options.to,
+            },
+            subject: options.subject,
+            html: options.html,
+            headers: options.listUnsubscribe
+                ? {
+                      'List-Unsubscribe': `<${options.listUnsubscribe}>`,
+                  }
+                : undefined,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+            errorData.message || `Sender.net API error: ${response.status}`,
+        );
+    }
+
+    return response.json();
+}
 
 /**
  * POST /api/campaigns/[id]/send/batch
@@ -144,32 +188,21 @@ export async function POST(
             let sendSuccess = false;
 
             try {
-                const result = await resend.emails.send({
-                    from:
-                        process.env.RESEND_FROM_EMAIL ||
-                        'Lookout Mode <hello@helderdesign.nl>',
-                    to: [contact.email],
+                const result = await sendWithSenderNet({
+                    to: contact.email,
+                    toName:
+                        `${contact.firstName || ''} ${contact.lastName || ''}`.trim() ||
+                        undefined,
                     subject: campaign.subject || 'No Subject',
                     html: emailHtml,
-                    headers: {
-                        'List-Unsubscribe': `<${unsubscribeUrl}>`,
-                        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-                    },
+                    listUnsubscribe: unsubscribeUrl,
                 });
 
-                if (result.error) {
-                    console.error(
-                        `[BATCH] Failed to send to ${contact.email}:`,
-                        result.error,
-                    );
-                    batchFailedCount++;
-                } else {
-                    console.log(
-                        `[BATCH] Sent to ${contact.email}, ID: ${result.data?.id}`,
-                    );
-                    sendSuccess = true;
-                    batchSentCount++;
-                }
+                console.log(
+                    `[BATCH] Sent to ${contact.email}, ID: ${result.id || 'ok'}`,
+                );
+                sendSuccess = true;
+                batchSentCount++;
             } catch (err) {
                 console.error(
                     `[BATCH] Error sending to ${contact.email}:`,
