@@ -24,6 +24,9 @@ model Contact {
   consentGiven     Boolean   @default(false)
   consentDate      DateTime?
   unsubscribeToken String    @unique @default(uuid())
+  isAdmin          Boolean   @default(false)
+  adminToken       String?   @unique
+  adminTokenExpiry DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

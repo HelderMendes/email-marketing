@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import PreferenceForm from './preference-form';
 
 export default async function PreferencePage({
@@ -19,9 +20,16 @@ export default async function PreferencePage({
     return (
         <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
             <div className='w-full max-w-md bg-white rounded-lg shadow-lg p-8'>
-                <h1 className='text-3xl font-serif text-center mb-8 border-b pb-4'>
-                    LOOK OUT Mode
-                </h1>
+                <div className='text-center mb-6 border-b '>
+                    <Image
+                        src='/logo_LookoutMode_black.png'
+                        alt='LOOK OUT Mode'
+                        width={380}
+                        height={80}
+                        className='mx-auto'
+                        priority
+                    />
+                </div>
                 <h2 className='text-xl font-medium mb-6'>Update Preferences</h2>
                 <div className='space-y-6'>
                     <div className='space-y-2'>

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/ModeToggle';
+import { LogoutButton } from '@/components/logout-button';
 
 export default function AdminLayout({
     children,
@@ -35,14 +36,19 @@ export default function AdminLayout({
                     >
                         Campaigns
                     </Link>
+                    <Link
+                        href='/campaigns/archive'
+                        className='text-sm font-medium hover:underline'
+                    >
+                        Archive
+                    </Link>
                 </nav>
                 <div className='ml-auto flex items-center gap-4'>
                     <Button variant='ghost' asChild>
                         <Link href='/'>Public View</Link>
                     </Button>
-                </div>
-                <div className='ml-auto flex items-center gap-4'>
                     <ModeToggle />
+                    <LogoutButton />
                 </div>
             </header>
             <main className='flex-1 p-2 md:p-3'>{children}</main>

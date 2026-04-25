@@ -5,7 +5,12 @@ import { Campaign } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { TiptapEditor } from '@/components/tiptap-editor';
+import {
+    ImageStackEditor,
+    imagesToHtml,
+    htmlToImages,
+    type ImageItem,
+} from '@/components/image-stack-editor';
 import { useRouter } from 'next/navigation';
 import {
     ArrowLeft,
@@ -16,13 +21,6 @@ import {
     Monitor,
     Mail,
     Type,
-    ImageIcon,
-    LayoutGrid,
-    Sparkles,
-    ShoppingBag,
-    Megaphone,
-    Square,
-    Minus,
     Palette,
     Settings,
     TestTube,
@@ -45,7 +43,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { SendCampaignDialog } from '@/components/send-campaign-dialog';
-import { SmartShareButton } from '@/components/smart-social-share';
 
 /* Mailchimp-inspired campaign editor with:
  * - Fixed header with campaign settings
@@ -56,111 +53,6 @@ import { SmartShareButton } from '@/components/smart-social-share';
 
 type EditorView = 'desktop' | 'mobile';
 type RightPanel = 'design' | 'settings';
-
-const CONTENT_BLOCKS = [
-    {
-        id: 'hero',
-        label: 'Hero Banner',
-        icon: Sparkles,
-        color: 'text-purple-500',
-    },
-    {
-        id: 'sale',
-        label: 'Sale Banner',
-        icon: Megaphone,
-        color: 'text-red-500',
-    },
-    {
-        id: 'twoColumn',
-        label: '2 Products',
-        icon: LayoutGrid,
-        color: 'text-blue-500',
-    },
-    {
-        id: 'threeColumn',
-        label: '3 Products',
-        icon: ShoppingBag,
-        color: 'text-green-500',
-    },
-    { id: 'image', label: 'Image', icon: ImageIcon, color: 'text-orange-500' },
-    { id: 'button', label: 'Button', icon: Square, color: 'text-pink-500' },
-    { id: 'text', label: 'Text Block', icon: Type, color: 'text-gray-500' },
-    { id: 'divider', label: 'Divider', icon: Minus, color: 'text-gray-400' },
-];
-
-const BLOCK_HTML: Record<string, string> = {
-    hero: `
-<div style="text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; margin: 16px 0;">
-  <h1 style="color: white; font-size: 32px; margin: 0 0 16px 0;">✨ New Collection</h1>
-  <p style="color: rgba(255,255,255,0.9); font-size: 18px; margin: 0 0 24px 0;">Discover our latest arrivals</p>
-  <a href="#" style="display: inline-block; background: white; color: #764ba2; padding: 12px 32px; border-radius: 25px; text-decoration: none; font-weight: bold;">Shop Now →</a>
-</div>
-<p></p>`,
-    sale: `
-<div style="background: #dc2626; color: white; padding: 24px; text-align: center; border-radius: 8px; margin: 16px 0;">
-  <p style="margin: 0 0 8px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Limited Time</p>
-  <h2 style="margin: 0 0 8px 0; font-size: 36px; font-weight: bold;">SALE 50% OFF</h2>
-  <p style="margin: 0 0 16px 0; font-size: 16px;">Op geselecteerde items • Deze week alleen!</p>
-  <a href="#" style="display: inline-block; background: white; color: #dc2626; padding: 12px 32px; border-radius: 4px; text-decoration: none; font-weight: bold;">Shop de Sale →</a>
-</div>
-<p></p>`,
-    twoColumn: `
-<table width="100%" cellpadding="0" cellspacing="0" style="margin: 16px 0;">
-  <tr>
-    <td width="48%" valign="top" style="padding-right: 2%;">
-      <img src="https://placehold.co/280x350/e8d5c4/333333?text=Product+1" alt="Product" style="width: 100%; border-radius: 8px;" />
-      <p style="text-align: center; margin: 12px 0 4px 0; font-weight: bold;">Product Name</p>
-      <p style="text-align: center; margin: 0; color: #666;">€59.00</p>
-    </td>
-    <td width="48%" valign="top" style="padding-left: 2%;">
-      <img src="https://placehold.co/280x350/d4c4b0/333333?text=Product+2" alt="Product" style="width: 100%; border-radius: 8px;" />
-      <p style="text-align: center; margin: 12px 0 4px 0; font-weight: bold;">Product Name</p>
-      <p style="text-align: center; margin: 0; color: #666;">€79.00</p>
-    </td>
-  </tr>
-</table>
-<p></p>`,
-    threeColumn: `
-<table width="100%" cellpadding="0" cellspacing="0" style="margin: 16px 0;">
-  <tr>
-    <td width="31%" valign="top" style="padding-right: 2%;">
-      <img src="https://placehold.co/180x220/e8d5c4/333333?text=Item+1" alt="Product" style="width: 100%; border-radius: 8px;" />
-      <p style="text-align: center; margin: 8px 0 2px 0; font-size: 14px; font-weight: bold;">Item Name</p>
-      <p style="text-align: center; margin: 0; font-size: 14px; color: #666;">€49.00</p>
-    </td>
-    <td width="31%" valign="top" style="padding: 0 1%;">
-      <img src="https://placehold.co/180x220/d4c4b0/333333?text=Item+2" alt="Product" style="width: 100%; border-radius: 8px;" />
-      <p style="text-align: center; margin: 8px 0 2px 0; font-size: 14px; font-weight: bold;">Item Name</p>
-      <p style="text-align: center; margin: 0; font-size: 14px; color: #666;">€49.00</p>
-    </td>
-    <td width="31%" valign="top" style="padding-left: 2%;">
-      <img src="https://placehold.co/180x220/c4b8a8/333333?text=Item+3" alt="Product" style="width: 100%; border-radius: 8px;" />
-      <p style="text-align: center; margin: 8px 0 2px 0; font-size: 14px; font-weight: bold;">Item Name</p>
-      <p style="text-align: center; margin: 0; font-size: 14px; color: #666;">€49.00</p>
-    </td>
-  </tr>
-</table>
-<p></p>`,
-    image: `
-<div style="margin: 16px 0;">
-  <img src="https://placehold.co/600x400/f5f0eb/333333?text=Your+Image" alt="Featured" style="width: 100%; border-radius: 8px;" />
-  <p style="text-align: center; margin: 16px 0 0 0; font-style: italic; color: #666;">Add your caption here</p>
-</div>
-<p></p>`,
-    button: `
-<div style="text-align: center; margin: 24px 0;">
-  <a href="#" style="display: inline-block; background: #1a1a1a; color: white; padding: 16px 40px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 16px;">Shop Now →</a>
-</div>
-<p></p>`,
-    text: `
-<div style="margin: 16px 0;">
-  <p style="font-size: 16px; line-height: 1.6; color: #333;">Write your content here. Click to edit this text block and add your message.</p>
-</div>
-<p></p>`,
-    divider: `
-<hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;" />
-<p></p>`,
-};
 
 type ContactGroup = {
     id: number;
@@ -180,7 +72,10 @@ export function EditForm({
     const [name, setName] = useState(campaign.name);
     const [subject, setSubject] = useState(campaign.subject || '');
     const [previewText, setPreviewText] = useState(campaign.previewText || '');
-    const [content, setContent] = useState(campaign.htmlContent || '');
+    // Parse existing content into images array
+    const [images, setImages] = useState<ImageItem[]>(() =>
+        htmlToImages(campaign.htmlContent || ''),
+    );
     const [theme, setTheme] = useState<EmailTheme>(
         (campaign.theme as unknown as EmailTheme) || defaultTheme,
     );
@@ -193,11 +88,6 @@ export function EditForm({
     const [testInstructions, setTestInstructions] = useState('');
     const [sendingTest, setSendingTest] = useState(false);
     const [sendDialogOpen, setSendDialogOpen] = useState(false);
-
-    // Reference to insert blocks into editor
-    const [editorRef, setEditorRef] = useState<{
-        insertBlock: (html: string) => void;
-    } | null>(null);
 
     // Resizable panel state
     const [rightPanelWidth, setRightPanelWidth] = useState(288); // Default 288px (w-72)
@@ -242,7 +132,7 @@ export function EditForm({
                     name,
                     subject,
                     previewText,
-                    htmlContent: content,
+                    htmlContent: imagesToHtml(images),
                     theme,
                 }),
                 headers: { 'Content-Type': 'application/json' },
@@ -287,16 +177,6 @@ export function EditForm({
     const handleThemeChange = useCallback((key: string, value: string) => {
         setTheme((prev) => ({ ...prev, [key]: value }));
     }, []);
-
-    const insertBlock = useCallback(
-        (blockId: string) => {
-            const html = BLOCK_HTML[blockId];
-            if (html && editorRef?.insertBlock) {
-                editorRef.insertBlock(html);
-            }
-        },
-        [editorRef],
-    );
 
     return (
         <div className='h-screen flex flex-col bg-gray-100'>
@@ -407,29 +287,23 @@ export function EditForm({
 
             {/* Main Content Area */}
             <div className='flex-1 flex overflow-hidden'>
-                {/* Left Sidebar - Content Blocks */}
-                <aside className='w-64 bg-white border-r shrink-0 flex flex-col'>
+                {/* Left Sidebar - Image Stack Editor */}
+                <aside className='w-80 bg-white border-r shrink-0 flex flex-col'>
                     <div className='p-4 border-b'>
                         <h3 className='font-semibold text-sm text-gray-500 uppercase tracking-wider'>
-                            Content Blocks
+                            Newsletter Images
                         </h3>
+                        <p className='text-xs text-gray-400 mt-1'>
+                            Add images that link to your website
+                        </p>
                     </div>
                     <ScrollArea className='flex-1'>
-                        <div className='p-3 grid grid-cols-2 gap-2'>
-                            {CONTENT_BLOCKS.map((block) => (
-                                <button
-                                    key={block.id}
-                                    onClick={() => insertBlock(block.id)}
-                                    className='flex flex-col items-center gap-2 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors text-center group'
-                                >
-                                    <block.icon
-                                        className={cn('h-6 w-6', block.color)}
-                                    />
-                                    <span className='text-xs font-medium text-gray-600 group-hover:text-blue-600'>
-                                        {block.label}
-                                    </span>
-                                </button>
-                            ))}
+                        <div className='p-4'>
+                            <ImageStackEditor
+                                images={images}
+                                onChange={setImages}
+                                defaultLink='https://lookoutmode.nl'
+                            />
                         </div>
                     </ScrollArea>
                 </aside>
@@ -486,10 +360,10 @@ export function EditForm({
                             />
                         )}
 
-                        {/* Main Content Area */}
-                        <div className='py-10 px-5' suppressHydrationWarning>
+                        {/* Main Content Area - Image Stack */}
+                        <div suppressHydrationWarning>
                             <div
-                                className='rounded-lg shadow-sm overflow-hidden'
+                                className='overflow-hidden'
                                 style={{
                                     backgroundColor:
                                         theme.contentBg || '#ffffff',
@@ -498,18 +372,37 @@ export function EditForm({
                                 }}
                                 suppressHydrationWarning
                             >
-                                <div
-                                    style={{
-                                        padding: theme.contentPadding || 40,
-                                    }}
-                                    suppressHydrationWarning
-                                >
-                                    <TiptapEditor
-                                        content={content}
-                                        onChange={setContent}
-                                        onEditorReady={setEditorRef}
-                                    />
-                                </div>
+                                {/* Preview of stacked images */}
+                                {images.length === 0 ? (
+                                    <div className='py-20 text-center text-gray-400'>
+                                        <p>No images yet</p>
+                                        <p className='text-sm'>
+                                            Add images in the right panel
+                                        </p>
+                                    </div>
+                                ) : (
+                                    images
+                                        .filter((img) => img.src)
+                                        .map((img) => (
+                                            <a
+                                                key={img.id}
+                                                href={img.link || '#'}
+                                                target='_blank'
+                                                rel='noopener noreferrer'
+                                                style={{ display: 'block' }}
+                                            >
+                                                <img
+                                                    src={img.src}
+                                                    alt=''
+                                                    style={{
+                                                        width: '100%',
+                                                        display: 'block',
+                                                        border: 0,
+                                                    }}
+                                                />
+                                            </a>
+                                        ))
+                                )}
                             </div>
                         </div>
 
@@ -668,7 +561,11 @@ export function EditForm({
                                         </h4>
                                         <ColorPicker
                                             label='Content Background'
-                                            value={theme.contentBg || '#ffffff'}
+                                            value={
+                                                theme.contentBg ||
+                                                theme.backgroundColor ||
+                                                '#f6f9fc'
+                                            }
                                             onChange={(v) =>
                                                 handleThemeChange(
                                                     'contentBg',
@@ -678,18 +575,44 @@ export function EditForm({
                                         />
                                         <div className='flex items-center justify-between'>
                                             <Label className='text-sm'>
-                                                Padding
+                                                Padding X (left/right)
                                             </Label>
                                             <div className='flex items-center gap-2'>
                                                 <Input
                                                     type='number'
                                                     value={
-                                                        theme.contentPadding ||
-                                                        40
+                                                        theme.contentPaddingX ??
+                                                        0
                                                     }
                                                     onChange={(e) =>
                                                         handleThemeChange(
-                                                            'contentPadding',
+                                                            'contentPaddingX',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className='w-20 h-8 text-sm'
+                                                    min={0}
+                                                    max={100}
+                                                />
+                                                <span className='text-xs text-gray-500'>
+                                                    px
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className='flex items-center justify-between'>
+                                            <Label className='text-sm'>
+                                                Padding Y (top/bottom)
+                                            </Label>
+                                            <div className='flex items-center gap-2'>
+                                                <Input
+                                                    type='number'
+                                                    value={
+                                                        theme.contentPaddingY ??
+                                                        0
+                                                    }
+                                                    onChange={(e) =>
+                                                        handleThemeChange(
+                                                            'contentPaddingY',
                                                             e.target.value,
                                                         )
                                                     }
@@ -843,20 +766,21 @@ export function EditForm({
                                         />
                                         <div>
                                             <Label className='text-sm'>
-                                                Content
+                                                Header Text (optional)
                                             </Label>
-                                            <TiptapEditor
-                                                content={
+                                            <textarea
+                                                value={
                                                     theme.emailHeaderContent ||
                                                     ''
                                                 }
-                                                onChange={(html) =>
+                                                onChange={(e) =>
                                                     handleThemeChange(
                                                         'emailHeaderContent',
-                                                        html,
+                                                        e.target.value,
                                                     )
                                                 }
-                                                minimal={true}
+                                                placeholder='e.g. LOOKOUT MODE )@'
+                                                className='w-full min-h-[60px] px-3 py-2 text-sm border rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-ring'
                                             />
                                         </div>
                                     </div>
@@ -1010,9 +934,13 @@ export function EditForm({
                     </DialogHeader>
                     <div className='flex-1 border rounded overflow-hidden bg-gray-100'>
                         <iframe
-                            srcDoc={renderEmailHtml(content, theme, {
-                                campaignId: campaign.id,
-                            })}
+                            srcDoc={renderEmailHtml(
+                                imagesToHtml(images),
+                                theme,
+                                {
+                                    campaignId: campaign.id,
+                                },
+                            )}
                             className='w-full h-full bg-white'
                             title='Preview'
                         />

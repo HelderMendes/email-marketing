@@ -20,7 +20,8 @@ export interface EmailTheme {
     instagramButtonRadius: number;
     // Content area styling
     contentBg: string;
-    contentPadding: number;
+    contentPaddingX: number;
+    contentPaddingY: number;
     contentMaxWidth: number;
     // Social media
     socialFacebook?: string;
@@ -50,8 +51,9 @@ export const defaultTheme: EmailTheme = {
     instagramButtonText: '#ffffff',
     instagramButtonBorder: '#d4a5b9',
     instagramButtonRadius: 50,
-    contentBg: '#ffffff',
-    contentPadding: 0,
+    contentBg: 'transparent',
+    contentPaddingX: 0,
+    contentPaddingY: 0,
     contentMaxWidth: 600,
     socialIconBg: '#333333',
     socialIconColor: '#ffffff',
@@ -81,10 +83,15 @@ export function renderEmailHtml(
         instagramButtonText,
         instagramButtonBorder,
         instagramButtonRadius,
-        contentBg,
-        contentPadding,
+        contentBg: rawContentBg,
+        contentPaddingX,
+        contentPaddingY,
         contentMaxWidth,
     } = { ...defaultTheme, ...theme };
+
+    // Use outer background color if content bg is transparent
+    const contentBg =
+        rawContentBg === 'transparent' ? backgroundColor : rawContentBg;
 
     // HTML structure
     return `
@@ -180,10 +187,10 @@ export function renderEmailHtml(
 
     <!-- MAIN BODY -->
     <tr>
-      <td align="center" style="padding: 0px">
+      <td align="center" style="background-color: ${contentBg}; padding: 0px">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: ${contentMaxWidth}px; background-color: ${contentBg}; border-radius: 0px; overflow: hidden; box-shadow: none;">
           <tr>
-            <td style="padding: ${contentPadding}px; font-size: 20px; line-height: 1.6;">
+            <td style="padding: ${contentPaddingY}px ${contentPaddingX}px; font-size: 20px; line-height: 1.6;">
               ${content}
             </td>
           </tr>
@@ -203,9 +210,8 @@ export function renderEmailHtml(
     <!-- FOOTER -->
     <tr>
       <td align="center" style="background-color: ${footerBg}; color: ${footerText}; padding: 20px; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-        <p style="margin: 0 0 20px; font-size: 13px;">Copyright &copy; ${new Date().getFullYear()} Look Out Mode, All rights reserved.</p>
         
-        <div style="margin: 0 auto 5px;">
+        <div style="margin: 0 auto;">
           <a href="https://lookoutmode.nl/" target="_blank" style="text-decoration: none;">
             <img src="${process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://lookoutmode.nl'}/logo_LookoutMode.webp" alt="LOOK OUT mode" width="370" style="display: block; margin: 0 auto; max-width: 100%; height: auto; border: none;" />
           </a>
@@ -217,17 +223,21 @@ export function renderEmailHtml(
           U ontvangt deze nieuwsbrief van LOOK OUT MODE omdat u ons daar toestemming voor heeft gegeven. Zo nu en dan sturen wij u een mailtje over geplande uitverkopen, nieuwe collecties en andere belangrijke dingen. Wij zullen het kort en informatief houden. Beloofd!
         </p>
         
-        <p style="margin: 0; padding-bottom: 8px; font-size: 12px; line-height: 1.6;">
+        <p style="margin: 0; padding-bottom: 8px; font-size: 15px; line-height: 1.6;">
           Want to change how you receive these emails?
         </p>
-        <p style="margin: 0; padding-bottom: 8px; font-size: 12px; line-height: 1.6;">
+        <p style="margin: 0; padding-bottom: 8px; font-size: 15px; line-height: 1.6;">
           You can <a href="{{preferencesUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">update your preferences</a> or <a href="{{unsubscribeUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">unsubscribe</a> from this list.
         </p>
 
-        <p style="margin: 0; padding-bottom: 8px; font-size: 12px; line-height: 1.6;">
+        <p style="margin: 0; padding-bottom: 2px; font-size: 15px; line-height: 1.6;">
           <a href="{{shareUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">Share the email campaigne with a friend</a>
         </p>
       </td>
+          <tr>
+      <td align="center" style="background-color: ${footerBg}; color: ${footerText}; padding: 0 20px 20px; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+        <p style="margin: 0 ; font-size: 13px; color: black; opacity: 60%; ">Copyright &copy; ${new Date().getFullYear()} Look Out Mode, All rights reserved.</p>
+
     </tr>
 
   </table>

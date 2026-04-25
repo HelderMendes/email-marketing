@@ -22,7 +22,7 @@ export function EmailFooter() {
                         />
                     </Link>
                 </div>
-                <p className='mb-8 text-6xl text-red-600'>
+                <p className='mb-8 text-6xl '>
                     Huizerweg 45 &ndash; 1401 GH, Bussum
                     <br />
                     Till the end of the world
