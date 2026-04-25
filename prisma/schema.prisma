@@ -28,6 +28,18 @@ model Contact {
   updatedAt        DateTime  @updatedAt
 
   sentEmails CampaignEmail[]
+  groups     ContactGroup[]  @relation("ContactGroups")
+}
+
+model ContactGroup {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  color       String?  @default("#6366f1") // For UI display
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contacts Contact[] @relation("ContactGroups")
 }
 
 model Campaign {

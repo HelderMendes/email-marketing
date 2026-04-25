@@ -19,6 +19,10 @@ export async function POST(
         const { id } = await params;
         const campaignId = parseInt(id);
 
+        // Parse request body for group selection
+        const body = await request.json().catch(() => ({}));
+        const groupIds: number[] | null = body.groupIds || null;
+
         const campaign = await prisma.campaign.findUnique({
             where: { id: campaignId },
             include: { sendJob: true },
@@ -50,9 +54,19 @@ export async function POST(
             });
         }
 
-        // Count subscribed contacts
+        // Build where clause for contacts
+        const contactWhere: {
+            status: string;
+            groups?: { some: { id: { in: number[] } } };
+        } = { status: 'SUBSCRIBED' };
+
+        if (groupIds && groupIds.length > 0) {
+            contactWhere.groups = { some: { id: { in: groupIds } } };
+        }
+
+        // Count subscribed contacts (deduplicated by contact id)
         const totalCount = await prisma.contact.count({
-            where: { status: 'SUBSCRIBED' },
+            where: contactWhere,
         });
 
         if (totalCount === 0) {
@@ -69,17 +83,23 @@ export async function POST(
             });
         }
 
-        // Create new SendJob
+        // Create new SendJob with groupIds stored for batch processing
         const sendJob = await prisma.sendJob.create({
             data: {
                 campaignId,
                 totalCount,
                 status: 'PENDING',
+                // Store groupIds as JSON string in error field temporarily
+                // (or we can add a new field to the schema later)
+                error: groupIds ? JSON.stringify({ groupIds }) : null,
             },
         });
 
         console.log(
-            `[SEND JOB] Created job ${sendJob.id} for campaign "${campaign.name}" — ${totalCount} contacts`,
+            `[SEND JOB] Created job ${sendJob.id} for campaign "${campaign.name}" — ${totalCount} contacts` +
+                (groupIds
+                    ? ` (groups: ${groupIds.join(', ')})`
+                    : ' (all contacts)'),
         );
 
         return NextResponse.json({

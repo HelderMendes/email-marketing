@@ -24,6 +24,12 @@ export default function AdminLayout({
                         Contacts
                     </Link>
                     <Link
+                        href='/admin/groups'
+                        className='text-sm font-medium hover:underline'
+                    >
+                        Groups
+                    </Link>
+                    <Link
                         href='/admin/campaigns'
                         className='text-sm font-medium hover:underline'
                     >

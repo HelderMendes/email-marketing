@@ -224,11 +224,13 @@ export function TiptapEditor({
     onChange,
     onEditorReady,
     minimal = false,
+    minHeight = 300,
 }: {
     content: string;
     onChange: (html: string) => void;
     onEditorReady?: (ref: EditorRef) => void;
     minimal?: boolean;
+    minHeight?: number;
 }) {
     const [uploading, setUploading] = useState(false);
     const [isSourceMode, setIsSourceMode] = useState(false);
@@ -746,7 +748,13 @@ export function TiptapEditor({
     }
 
     return (
-        <div className='border rounded-md bg-white shadow-sm flex flex-col max-h-[500px]'>
+        <div
+            className='border rounded-md bg-white shadow-sm flex flex-col resize-y overflow-hidden'
+            style={{
+                minHeight: minimal ? 150 : minHeight,
+                height: minimal ? 200 : 400,
+            }}
+        >
             <div className='flex gap-1 p-2 border-b bg-gray-50 flex-wrap items-center shrink-0'>
                 {/* Text Formatting Group */}
                 <div className='flex gap-1 border-r pr-2 mr-2'>
@@ -1401,11 +1409,11 @@ export function TiptapEditor({
                 <textarea
                     value={content}
                     onChange={(e) => onChange(e.target.value)}
-                    className='flex-1 w-full min-h-[450px] p-4 font-mono text-sm border-0 focus:outline-none resize-none overflow-auto'
+                    className='flex-1 w-full p-4 font-mono text-sm border-0 focus:outline-none resize-none overflow-auto'
                 />
             ) : (
                 <div
-                    className='flex-1 overflow-visible relative'
+                    className='flex-1 overflow-auto relative'
                     onClick={(e) => {
                         const target = e.target as HTMLElement;
                         // Detect clicks on section blocks (divs with background-color)

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -13,12 +14,20 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { SerializedContact } from './types';
+import { SerializedContact, ContactGroup } from './types';
+
+type GroupWithCount = {
+    id: number;
+    name: string;
+    color: string | null;
+    _count: { contacts: number };
+};
 
 interface EditContactDialogProps {
     contact: SerializedContact | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    availableGroups?: GroupWithCount[];
 }
 
 export function EditContactDialog({

@@ -8,13 +8,27 @@ export default async function CampaignEditPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-    const campaign = await prisma.campaign.findUnique({
-        where: { id: parseInt(id) },
-    });
+
+    const [campaign, groups] = await Promise.all([
+        prisma.campaign.findUnique({
+            where: { id: parseInt(id) },
+        }),
+        prisma.contactGroup.findMany({
+            include: { _count: { select: { contacts: true } } },
+            orderBy: { name: 'asc' },
+        }),
+    ]);
 
     if (!campaign) {
         notFound();
     }
 
-    return <EditForm campaign={campaign} />;
+    const serializedGroups = groups.map((g) => ({
+        id: g.id,
+        name: g.name,
+        color: g.color,
+        _count: g._count,
+    }));
+
+    return <EditForm campaign={campaign} groups={serializedGroups} />;
 }

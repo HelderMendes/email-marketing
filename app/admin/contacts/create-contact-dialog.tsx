@@ -51,7 +51,10 @@ export function CreateContactDialog() {
                 body: JSON.stringify(form),
             });
 
-            if (!res.ok) throw new Error('Failed to create contact');
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to create contact');
+            }
 
             setOpen(false);
             router.refresh();
@@ -66,7 +69,11 @@ export function CreateContactDialog() {
             });
         } catch (error) {
             console.error(error);
-            alert('Failed to create contact');
+            alert(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to create contact',
+            );
         } finally {
             setLoading(false);
         }

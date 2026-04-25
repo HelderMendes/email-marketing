@@ -162,7 +162,20 @@ const BLOCK_HTML: Record<string, string> = {
 <p></p>`,
 };
 
-export function EditForm({ campaign }: { campaign: Campaign }) {
+type ContactGroup = {
+    id: number;
+    name: string;
+    color: string | null;
+    _count: { contacts: number };
+};
+
+export function EditForm({
+    campaign,
+    groups = [],
+}: {
+    campaign: Campaign;
+    groups?: ContactGroup[];
+}) {
     const router = useRouter();
     const [name, setName] = useState(campaign.name);
     const [subject, setSubject] = useState(campaign.subject || '');
@@ -177,6 +190,7 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
     const [previewOpen, setPreviewOpen] = useState(false);
     const [testEmailOpen, setTestEmailOpen] = useState(false);
     const [testEmail, setTestEmail] = useState('');
+    const [testInstructions, setTestInstructions] = useState('');
     const [sendingTest, setSendingTest] = useState(false);
     const [sendDialogOpen, setSendDialogOpen] = useState(false);
 
@@ -252,7 +266,10 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
             const res = await fetch(`/api/campaigns/${campaign.id}/test`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: testEmail }),
+                body: JSON.stringify({
+                    email: testEmail,
+                    instructions: testInstructions,
+                }),
             });
             if (res.ok) {
                 alert(`Test email sent to ${testEmail}!`);
@@ -462,6 +479,7 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                                         theme.emailHeaderBg || '#eef2f5',
                                     color: theme.textColor || '#333333',
                                 }}
+                                suppressHydrationWarning
                                 dangerouslySetInnerHTML={{
                                     __html: theme.emailHeaderContent,
                                 }}
@@ -469,7 +487,7 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                         )}
 
                         {/* Main Content Area */}
-                        <div className='py-10 px-5'>
+                        <div className='py-10 px-5' suppressHydrationWarning>
                             <div
                                 className='rounded-lg shadow-sm overflow-hidden'
                                 style={{
@@ -478,11 +496,13 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                                     maxWidth: theme.contentMaxWidth || 600,
                                     margin: '0 auto',
                                 }}
+                                suppressHydrationWarning
                             >
                                 <div
                                     style={{
                                         padding: theme.contentPadding || 40,
                                     }}
+                                    suppressHydrationWarning
                                 >
                                     <TiptapEditor
                                         content={content}
@@ -493,87 +513,29 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                             </div>
                         </div>
 
-                        {/* Pre-footer / Social Icons Preview */}
+                        {/* Instagram Button Preview */}
                         <div
-                            className='py-8 text-center'
+                            className='py-5 text-center'
                             style={{
                                 backgroundColor: theme.preFooterBg || '#f0f0f0',
                             }}
                         >
-                            {theme.preFooterContent && (
-                                <div
-                                    className='px-4 mb-4 text-sm'
-                                    style={{
-                                        color: theme.textColor || '#333333',
-                                    }}
-                                    dangerouslySetInnerHTML={{
-                                        __html: theme.preFooterContent,
-                                    }}
-                                />
-                            )}
-                            <div className='flex justify-center gap-4'>
-                                {(() => {
-                                    const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/c/${campaign.id}`;
-                                    const shareContent = {
-                                        title: subject || campaign.name,
-                                        message: `Check out: ${subject || campaign.name}`,
-                                        url: shareUrl,
-                                    };
-                                    return (
-                                        <>
-                                            <SmartShareButton
-                                                platform='facebook'
-                                                content={shareContent}
-                                                iconBg={
-                                                    theme.socialIconBg ||
-                                                    '#333333'
-                                                }
-                                                iconColor={
-                                                    theme.socialIconColor ||
-                                                    '#ffffff'
-                                                }
-                                            />
-                                            <SmartShareButton
-                                                platform='instagram'
-                                                content={shareContent}
-                                                iconBg={
-                                                    theme.socialIconBg ||
-                                                    '#333333'
-                                                }
-                                                iconColor={
-                                                    theme.socialIconColor ||
-                                                    '#ffffff'
-                                                }
-                                            />
-                                            <SmartShareButton
-                                                platform='twitter'
-                                                content={shareContent}
-                                                iconBg={
-                                                    theme.socialIconBg ||
-                                                    '#333333'
-                                                }
-                                                iconColor={
-                                                    theme.socialIconColor ||
-                                                    '#ffffff'
-                                                }
-                                            />
-                                            <SmartShareButton
-                                                platform='linkedin'
-                                                content={shareContent}
-                                                iconBg={
-                                                    theme.socialIconBg ||
-                                                    '#333333'
-                                                }
-                                                iconColor={
-                                                    theme.socialIconColor ||
-                                                    '#ffffff'
-                                                }
-                                            />
-                                        </>
-                                    );
-                                })()}
-                            </div>
-                            {/* Share buttons are always shown - they share the campaign URL */}
+                            <a
+                                href='https://www.instagram.com/lookoutmode/'
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='inline-block px-16 py-3 text-xl font-medium no-underline'
+                                style={{
+                                    backgroundColor:
+                                        theme.instagramButtonBg || '#d4a5b9',
+                                    color:
+                                        theme.instagramButtonText || '#ffffff',
+                                    borderRadius: `${theme.instagramButtonRadius ?? 50}px`,
+                                    border: `2px solid ${theme.instagramButtonBorder || '#d4a5b9'}`,
+                                }}
+                            >
+                                Volg lookoutmode op instagram
+                            </a>
                         </div>
 
                         {/* Footer Preview */}
@@ -792,6 +754,19 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                                                 )
                                             }
                                         />
+                                        <ColorPicker
+                                            label='Footer Link Color'
+                                            value={
+                                                theme.footerLinkColor ||
+                                                '#c896aa'
+                                            }
+                                            onChange={(v) =>
+                                                handleThemeChange(
+                                                    'footerLinkColor',
+                                                    v,
+                                                )
+                                            }
+                                        />
                                     </div>
 
                                     {/* Social Icons Section */}
@@ -832,6 +807,7 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                                                 Header Text
                                             </Label>
                                             <Input
+                                                type='text'
                                                 value={
                                                     theme.headerContent ||
                                                     'LOOKOUT MODE )@'
@@ -885,13 +861,13 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                                         </div>
                                     </div>
 
-                                    {/* Pre-Footer Content */}
+                                    {/* Instagram Button Section */}
                                     <div className='space-y-3'>
                                         <h4 className='font-medium text-sm text-gray-500 uppercase tracking-wider'>
-                                            Pre-Footer Section
+                                            Instagram Button
                                         </h4>
                                         <ColorPicker
-                                            label='Background'
+                                            label='Section Background'
                                             value={
                                                 theme.preFooterBg || '#f0f0f0'
                                             }
@@ -902,22 +878,68 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                                                 )
                                             }
                                         />
-                                        <div>
-                                            <Label className='text-sm'>
-                                                Content
+                                        <ColorPicker
+                                            label='Button Background'
+                                            value={
+                                                theme.instagramButtonBg ||
+                                                '#d4a5b9'
+                                            }
+                                            onChange={(v) =>
+                                                handleThemeChange(
+                                                    'instagramButtonBg',
+                                                    v,
+                                                )
+                                            }
+                                        />
+                                        <ColorPicker
+                                            label='Button Text'
+                                            value={
+                                                theme.instagramButtonText ||
+                                                '#ffffff'
+                                            }
+                                            onChange={(v) =>
+                                                handleThemeChange(
+                                                    'instagramButtonText',
+                                                    v,
+                                                )
+                                            }
+                                        />
+                                        <ColorPicker
+                                            label='Button Border'
+                                            value={
+                                                theme.instagramButtonBorder ||
+                                                '#d4a5b9'
+                                            }
+                                            onChange={(v) =>
+                                                handleThemeChange(
+                                                    'instagramButtonBorder',
+                                                    v,
+                                                )
+                                            }
+                                        />
+                                        <div className='flex items-center gap-2'>
+                                            <Label className='text-sm min-w-[100px]'>
+                                                Rounded Corners
                                             </Label>
-                                            <TiptapEditor
-                                                content={
-                                                    theme.preFooterContent || ''
+                                            <Input
+                                                type='number'
+                                                min={0}
+                                                max={100}
+                                                value={
+                                                    theme.instagramButtonRadius ??
+                                                    50
                                                 }
-                                                onChange={(html) =>
+                                                onChange={(e) =>
                                                     handleThemeChange(
-                                                        'preFooterContent',
-                                                        html,
+                                                        'instagramButtonRadius',
+                                                        e.target.value,
                                                     )
                                                 }
-                                                minimal={true}
+                                                className='w-20'
                                             />
+                                            <span className='text-sm text-gray-500'>
+                                                px
+                                            </span>
                                         </div>
                                     </div>
 
@@ -1008,16 +1030,31 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                             subscribers.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className='py-4'>
-                        <Input
-                            type='email'
-                            placeholder='your@email.com'
-                            value={testEmail}
-                            onChange={(e) => setTestEmail(e.target.value)}
-                            onKeyDown={(e) =>
-                                e.key === 'Enter' && handleSendTest()
-                            }
-                        />
+                    <div className='py-4 space-y-4'>
+                        <div>
+                            <Label className='text-sm font-medium mb-1.5 block'>
+                                Email Address(es)
+                            </Label>
+                            <Input
+                                type='email'
+                                placeholder='your@email.com (use , or ; for multiple)'
+                                value={testEmail}
+                                onChange={(e) => setTestEmail(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <Label className='text-sm font-medium mb-1.5 block'>
+                                Instructions (optional)
+                            </Label>
+                            <textarea
+                                placeholder='e.g. Please check if colors look good, or did this go to spam?'
+                                value={testInstructions}
+                                onChange={(e) =>
+                                    setTestInstructions(e.target.value)
+                                }
+                                className='w-full min-h-[80px] px-3 py-2 text-sm border rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-ring'
+                            />
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button
@@ -1043,6 +1080,7 @@ export function EditForm({ campaign }: { campaign: Campaign }) {
                 open={sendDialogOpen}
                 onOpenChange={setSendDialogOpen}
                 onComplete={() => router.refresh()}
+                groups={groups}
             />
         </div>
     );

@@ -8,10 +8,16 @@ export interface EmailTheme {
     headerContent: string;
     footerBg: string;
     footerText: string;
+    footerLinkColor: string;
     emailHeaderBg: string;
     emailHeaderContent: string;
     preFooterBg: string;
     preFooterContent: string;
+    // Instagram button styling
+    instagramButtonBg: string;
+    instagramButtonText: string;
+    instagramButtonBorder: string;
+    instagramButtonRadius: number;
     // Content area styling
     contentBg: string;
     contentPadding: number;
@@ -35,10 +41,15 @@ export const defaultTheme: EmailTheme = {
     headerContent: 'LOOKOUT MODE EXTRA',
     footerBg: '#2a2a2a',
     footerText: '#ffffff',
+    footerLinkColor: '#c896aa',
     emailHeaderBg: '#eef2f5',
     emailHeaderContent: '',
     preFooterBg: '#f0f0f0',
     preFooterContent: '',
+    instagramButtonBg: '#d4a5b9',
+    instagramButtonText: '#ffffff',
+    instagramButtonBorder: '#d4a5b9',
+    instagramButtonRadius: 50,
     contentBg: '#ffffff',
     contentPadding: 0,
     contentMaxWidth: 600,
@@ -62,18 +73,17 @@ export function renderEmailHtml(
         linkColor,
         footerBg,
         footerText,
+        footerLinkColor,
         emailHeaderBg,
         emailHeaderContent,
         preFooterBg,
-        preFooterContent,
+        instagramButtonBg,
+        instagramButtonText,
+        instagramButtonBorder,
+        instagramButtonRadius,
         contentBg,
         contentPadding,
         contentMaxWidth,
-        socialFacebook,
-        socialTwitter,
-        socialInstagram,
-        socialLinkedin,
-        socialIconBg,
     } = { ...defaultTheme, ...theme };
 
     // HTML structure
@@ -181,18 +191,12 @@ export function renderEmailHtml(
       </td>
     </tr>
 
-    <!-- PRE-FOOTER / SOCIAL ICONS -->
+    <!-- PRE-FOOTER / INSTAGRAM BUTTON -->
     <tr>
-      <td align="center" style="background-color: ${preFooterBg}; padding: 30px 60px 20px 60px;">
-        ${preFooterContent ? `<div style="color: ${textColor}; font-size: 16px; max-width: ${contentMaxWidth}px; margin-bottom: 20px;">${preFooterContent}</div>` : ''}
-        <table cellpadding="0" cellspacing="0" role="presentation">
-          <tr>
-            ${socialFacebook ? `<td style="padding: 0 12px;"><a href="${socialFacebook}" target="_blank" style="display: inline-block; width: 58px; height: 58px; background-color: ${socialIconBg}; border-radius: 50%; text-align: center; line-height: 58px; text-decoration: none;"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/facebook.svg" alt="Facebook" width="26" height="26" style="vertical-align: middle; filter: invert(1);" /></a></td>` : ''}
-            ${socialInstagram ? `<td style="padding: 0 12px;"><a href="${socialInstagram}" target="_blank" style="display: inline-block; width: 58px; height: 58px; background-color: ${socialIconBg}; border-radius: 50%; text-align: center; line-height: 58px; text-decoration: none;"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg" alt="Instagram" width="26" height="26" style="vertical-align: middle; filter: invert(1);" /></a></td>` : ''}
-            ${socialTwitter ? `<td style="padding: 0 12px;"><a href="${socialTwitter}" target="_blank" style="display: inline-block; width: 58px; height: 58px; background-color: ${socialIconBg}; border-radius: 50%; text-align: center; line-height: 58px; text-decoration: none;"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg" alt="X" width="26" height="26" style="vertical-align: middle; filter: invert(1);" /></a></td>` : ''}
-            ${socialLinkedin ? `<td style="padding: 0 12px;"><a href="${socialLinkedin}" target="_blank" style="display: inline-block; width: 58px; height: 58px; background-color: ${socialIconBg}; border-radius: 50%; text-align: center; line-height: 58px; text-decoration: none;"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linkedin.svg" alt="LinkedIn" width="26" height="26" style="vertical-align: middle; filter: invert(1);" /></a></td>` : ''}
-          </tr>
-        </table>
+      <td align="center" style="background-color: ${preFooterBg}; padding: 20px 20px;">
+        <a href="https://www.instagram.com/lookoutmode/" target="_blank" style="display: inline-block; padding: 10px 60px; background-color: ${instagramButtonBg}; color: ${instagramButtonText}; font-size: 18px; font-weight: 500; text-decoration: none; border-radius: ${instagramButtonRadius}px; border: 2px solid ${instagramButtonBorder}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+          Volg lookoutmode op instagram
+        </a>
       </td>
     </tr>
 
@@ -207,9 +211,9 @@ export function renderEmailHtml(
           </a>
         </div>
         
-        <p style="margin: 0 0 15px; font-size: 18px;">Huizerweg 45 &ndash; 1401 GH, Bussum</p>
+        <p style="margin: 0 0 15px; font-size: 26px;">Huizerweg 45 &ndash; 1401 GH, Bussum</p>
         
-        <p style="margin: 0 auto; padding-bottom: 15px; text-align: center; max-width: 500px; color: #aaaaaa; font-size: 15px; line-height: 1.6;">
+        <p style="margin: 0 auto; padding-bottom: 15px; text-align: center; max-width: 500px; color: rgb(200,150,170); font-size: 15px; line-height: 1.6;">
           U ontvangt deze nieuwsbrief van LOOK OUT MODE omdat u ons daar toestemming voor heeft gegeven. Zo nu en dan sturen wij u een mailtje over geplande uitverkopen, nieuwe collecties en andere belangrijke dingen. Wij zullen het kort en informatief houden. Beloofd!
         </p>
         
@@ -217,11 +221,11 @@ export function renderEmailHtml(
           Want to change how you receive these emails?
         </p>
         <p style="margin: 0; padding-bottom: 8px; font-size: 12px; line-height: 1.6;">
-          You can <a href="{{preferencesUrl}}" style="color: ${footerText}; text-decoration: underline;">update your preferences</a> or <a href="{{unsubscribeUrl}}" style="color: ${footerText}; text-decoration: underline;">unsubscribe</a> from this list.
+          You can <a href="{{preferencesUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">update your preferences</a> or <a href="{{unsubscribeUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">unsubscribe</a> from this list.
         </p>
 
         <p style="margin: 0; padding-bottom: 8px; font-size: 12px; line-height: 1.6;">
-          <a href="{{shareUrl}}" style="color: ${footerText}; text-decoration: underline;">Share the email campaigne with a friend</a>
+          <a href="{{shareUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">Share the email campaigne with a friend</a>
         </p>
       </td>
     </tr>

@@ -2,33 +2,29 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { renderEmailHtml, EmailTheme } from '@/lib/email-renderer';
 
-const SENDER_API_URL = 'https://api.sender.net/v2/message/send';
+const RESEND_API_URL = 'https://api.resend.com/emails';
 
 /**
- * Send email using Sender.net API
+ * Send email using Resend API
  */
-async function sendWithSenderNet(options: {
+async function sendWithResend(options: {
     to: string;
     toName?: string;
     subject: string;
     html: string;
 }) {
-    const response = await fetch(SENDER_API_URL, {
+    const fromEmail = process.env.SENDER_FROM_EMAIL || 'info@lookoutmode.nl';
+    const fromName = process.env.SENDER_FROM_NAME || 'Look Out Mode';
+
+    const response = await fetch(RESEND_API_URL, {
         method: 'POST',
         headers: {
-            Accept: 'application/json',
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.SENDER_API_TOKEN}`,
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-            from: {
-                email: process.env.SENDER_FROM_EMAIL || 'hello@lookoutmode.nl',
-                name: process.env.SENDER_FROM_NAME || 'Look Out Mode',
-            },
-            to: {
-                email: options.to,
-                name: options.toName || options.to,
-            },
+            from: `${fromName} <${fromEmail}>`,
+            to: [options.to],
             subject: options.subject,
             html: options.html,
         }),
@@ -37,7 +33,7 @@ async function sendWithSenderNet(options: {
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-            errorData.message || `Sender.net API error: ${response.status}`,
+            errorData.message || `Resend API error: ${response.status}`,
         );
     }
 
@@ -51,7 +47,7 @@ export async function POST(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { email } = body;
+        const { email, instructions } = body;
 
         if (!email || typeof email !== 'string') {
             return NextResponse.json(
@@ -60,11 +56,11 @@ export async function POST(
             );
         }
 
-        // Support multiple comma-separated emails
+        // Support multiple emails separated by comma or semicolon
         const emailAddresses = email
-            .split(',')
-            .map((e) => e.trim())
-            .filter((e) => e.length > 0);
+            .split(/[,;]/)
+            .map((e: string) => e.trim())
+            .filter((e: string) => e.length > 0);
 
         const campaign = await prisma.campaign.findUnique({
             where: { id: parseInt(id) },
@@ -101,7 +97,16 @@ export async function POST(
             ? `${baseUrl}/preferences/${contact.unsubscribeToken}`
             : '#';
 
-        const emailHtml = renderedHtml
+        // Build instructions banner if provided
+        const instructionsBanner =
+            instructions && instructions.trim()
+                ? `<div style="background-color: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 16px auto; max-width: 580px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="font-weight: bold; color: #92400e; margin-bottom: 8px;">📋 Test Instructions:</div>
+                <div style="color: #78350f; white-space: pre-wrap;">${instructions.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+              </div>`
+                : '';
+
+        let emailHtml = renderedHtml
             .replace(/{{firstName}}/g, contact?.firstName || 'Test User')
             .replace(/{{unsubscribeUrl}}/g, unsubscribeUrl)
             .replace(/{{preferencesUrl}}/g, preferencesUrl)
@@ -111,6 +116,14 @@ export async function POST(
                 `mailto:?subject=Look Out Mode Newsletter&body=Check out our latest news: ${viewUrl}`,
             );
 
+        // Insert instructions banner after <body> tag
+        if (instructionsBanner) {
+            emailHtml = emailHtml.replace(
+                /<body([^>]*)>/i,
+                `<body$1>${instructionsBanner}`,
+            );
+        }
+
         console.log(
             `[TEST SEND] To: ${emailAddresses.join(', ')}, Subject: [TEST] ${campaign.subject}`,
         );
@@ -119,7 +132,7 @@ export async function POST(
         const results = [];
         for (const addr of emailAddresses) {
             try {
-                const result = await sendWithSenderNet({
+                const result = await sendWithResend({
                     to: addr,
                     subject: `[TEST] ${campaign.subject || 'No Subject'}`,
                     html: emailHtml,

@@ -2,35 +2,31 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { renderEmailHtml, type EmailTheme } from '@/lib/email-renderer';
 
-const SENDER_API_URL = 'https://api.sender.net/v2/message/send';
+const RESEND_API_URL = 'https://api.resend.com/emails';
 const BATCH_SIZE = 50;
 
 /**
- * Send email using Sender.net API
+ * Send email using Resend API
  */
-async function sendWithSenderNet(options: {
+async function sendWithResend(options: {
     to: string;
     toName?: string;
     subject: string;
     html: string;
     listUnsubscribe?: string;
 }) {
-    const response = await fetch(SENDER_API_URL, {
+    const fromEmail = process.env.SENDER_FROM_EMAIL || 'info@lookoutmode.nl';
+    const fromName = process.env.SENDER_FROM_NAME || 'Look Out Mode';
+
+    const response = await fetch(RESEND_API_URL, {
         method: 'POST',
         headers: {
-            Accept: 'application/json',
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.SENDER_API_TOKEN}`,
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-            from: {
-                email: process.env.SENDER_FROM_EMAIL || 'hello@lookoutmode.nl',
-                name: process.env.SENDER_FROM_NAME || 'Look Out Mode',
-            },
-            to: {
-                email: options.to,
-                name: options.toName || options.to,
-            },
+            from: `${fromName} <${fromEmail}>`,
+            to: [options.to],
             subject: options.subject,
             html: options.html,
             headers: options.listUnsubscribe
@@ -44,7 +40,7 @@ async function sendWithSenderNet(options: {
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-            errorData.message || `Sender.net API error: ${response.status}`,
+            errorData.message || `Resend API error: ${response.status}`,
         );
     }
 
@@ -120,6 +116,17 @@ export async function POST(
             });
         }
 
+        // Parse groupIds from job.error field (temporary storage)
+        let groupIds: number[] | null = null;
+        if (job.error) {
+            try {
+                const jobMeta = JSON.parse(job.error);
+                groupIds = jobMeta.groupIds || null;
+            } catch {
+                // Not JSON, ignore
+            }
+        }
+
         // Get contacts that haven't been emailed yet for this campaign
         const alreadySentContactIds = await prisma.campaignEmail.findMany({
             where: { campaignId },
@@ -128,11 +135,22 @@ export async function POST(
 
         const sentIds = alreadySentContactIds.map((e) => e.contactId);
 
+        // Build where clause with optional group filter
+        const contactWhere: {
+            status: string;
+            id: { notIn: number[] };
+            groups?: { some: { id: { in: number[] } } };
+        } = {
+            status: 'SUBSCRIBED',
+            id: { notIn: sentIds.length > 0 ? sentIds : [-1] },
+        };
+
+        if (groupIds && groupIds.length > 0) {
+            contactWhere.groups = { some: { id: { in: groupIds } } };
+        }
+
         const contactsToSend = await prisma.contact.findMany({
-            where: {
-                status: 'SUBSCRIBED',
-                id: { notIn: sentIds.length > 0 ? sentIds : [-1] },
-            },
+            where: contactWhere,
             take: BATCH_SIZE,
         });
 
@@ -188,7 +206,7 @@ export async function POST(
             let sendSuccess = false;
 
             try {
-                const result = await sendWithSenderNet({
+                const result = await sendWithResend({
                     to: contact.email,
                     toName:
                         `${contact.firstName || ''} ${contact.lastName || ''}`.trim() ||

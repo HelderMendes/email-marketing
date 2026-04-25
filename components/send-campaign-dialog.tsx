@@ -17,7 +17,10 @@ import {
     Loader2,
     Mail,
     AlertTriangle,
+    Users,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 /**
  * 📝 Teaching note: Discriminated union for state management.
@@ -44,12 +47,20 @@ type SendState =
       }
     | { _tag: 'error'; message: string };
 
+type ContactGroup = {
+    id: number;
+    name: string;
+    color: string | null;
+    _count: { contacts: number };
+};
+
 type SendCampaignDialogProps = {
     campaignId: number;
     campaignName: string;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onComplete?: () => void;
+    groups?: ContactGroup[];
 };
 
 export function SendCampaignDialog({
@@ -58,17 +69,36 @@ export function SendCampaignDialog({
     open,
     onOpenChange,
     onComplete,
+    groups = [],
 }: SendCampaignDialogProps) {
     const [state, setState] = useState<SendState>({ _tag: 'idle' });
+    const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
 
     // Reset state when dialog opens
     useEffect(() => {
         if (open) {
             setState({ _tag: 'confirming' });
+            setSelectedGroups([]);
         } else {
             setState({ _tag: 'idle' });
         }
     }, [open]);
+
+    const toggleGroup = (groupId: number) => {
+        setSelectedGroups((prev) =>
+            prev.includes(groupId)
+                ? prev.filter((id) => id !== groupId)
+                : [...prev, groupId],
+        );
+    };
+
+    const totalSelectedContacts =
+        selectedGroups.length === 0
+            ? 'all contacts'
+            : groups
+                  .filter((g) => selectedGroups.includes(g.id))
+                  .reduce((sum, g) => sum + g._count.contacts, 0) +
+              ' contacts (may include duplicates)';
 
     const processBatch = useCallback(async (): Promise<boolean> => {
         const res = await fetch(`/api/campaigns/${campaignId}/send/batch`, {
@@ -99,6 +129,10 @@ export function SendCampaignDialog({
             // Step 1: Create the send job
             const res = await fetch(`/api/campaigns/${campaignId}/send`, {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    groupIds: selectedGroups.length > 0 ? selectedGroups : null,
+                }),
             });
 
             if (!res.ok) {
@@ -161,6 +195,59 @@ export function SendCampaignDialog({
                     {/* Confirming State */}
                     {state._tag === 'confirming' && (
                         <div className='space-y-4'>
+                            {/* Group Selection */}
+                            {groups.length > 0 && (
+                                <div className='space-y-3'>
+                                    <div className='flex items-center gap-2'>
+                                        <Users className='h-4 w-4 text-muted-foreground' />
+                                        <Label className='text-sm font-medium'>
+                                            Select target groups
+                                        </Label>
+                                    </div>
+                                    <div className='space-y-2 max-h-[200px] overflow-y-auto rounded-md border p-3'>
+                                        {groups.map((group) => (
+                                            <div
+                                                key={group.id}
+                                                className='flex items-center gap-2'
+                                            >
+                                                <Checkbox
+                                                    id={`group-${group.id}`}
+                                                    checked={selectedGroups.includes(
+                                                        group.id,
+                                                    )}
+                                                    onCheckedChange={() =>
+                                                        toggleGroup(group.id)
+                                                    }
+                                                />
+                                                <label
+                                                    htmlFor={`group-${group.id}`}
+                                                    className='flex items-center gap-2 text-sm cursor-pointer flex-1'
+                                                >
+                                                    <span
+                                                        className='w-2 h-2 rounded-full'
+                                                        style={{
+                                                            backgroundColor:
+                                                                group.color ||
+                                                                '#6366f1',
+                                                        }}
+                                                    />
+                                                    {group.name}
+                                                    <span className='text-muted-foreground'>
+                                                        ({group._count.contacts}
+                                                        )
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className='text-xs text-muted-foreground'>
+                                        {selectedGroups.length === 0
+                                            ? 'No groups selected — will send to ALL subscribed contacts'
+                                            : `Targeting ${totalSelectedContacts}`}
+                                    </p>
+                                </div>
+                            )}
+
                             <div className='flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950'>
                                 <AlertTriangle className='h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5' />
                                 <div className='text-sm'>
@@ -168,9 +255,10 @@ export function SendCampaignDialog({
                                         Ready to send?
                                     </p>
                                     <p className='text-amber-700 dark:text-amber-300 mt-1'>
-                                        This will send the campaign to all
-                                        subscribed contacts. This action cannot
-                                        be undone.
+                                        {selectedGroups.length === 0
+                                            ? 'This will send the campaign to all subscribed contacts.'
+                                            : `This will send to contacts in the selected group${selectedGroups.length > 1 ? 's' : ''}.`}{' '}
+                                        This action cannot be undone.
                                     </p>
                                 </div>
                             </div>
