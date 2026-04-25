@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(
-    process.env.JWT_SECRET || 'default-secret-change-in-production'
+    process.env.JWT_SECRET || 'default-secret-change-in-production',
 );
 
 const COOKIE_NAME = 'admin_session';
@@ -19,7 +19,7 @@ const PUBLIC_PATHS = [
 ];
 
 function isPublicPath(pathname: string): boolean {
-    return PUBLIC_PATHS.some(path => {
+    return PUBLIC_PATHS.some((path) => {
         if (path === '/') return pathname === '/';
         return pathname === path || pathname.startsWith(path + '/');
     });
@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
     // Allow login page
     if (pathname === '/admin/login') {
         const token = request.cookies.get(COOKIE_NAME)?.value;
-        if (token && await verifyToken(token)) {
+        if (token && (await verifyToken(token))) {
             return NextResponse.redirect(new URL('/admin', request.url));
         }
         return NextResponse.next();
@@ -70,7 +70,7 @@ export async function middleware(request: NextRequest) {
             if (pathname.startsWith('/api/')) {
                 return NextResponse.json(
                     { error: 'Unauthorized' },
-                    { status: 401 }
+                    { status: 401 },
                 );
             }
             // For pages, redirect to login
