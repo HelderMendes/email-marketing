@@ -8,7 +8,9 @@ export async function GET(request: Request) {
         const token = searchParams.get('token');
 
         if (!token) {
-            return NextResponse.redirect(new URL('/admin/login?error=invalid', request.url));
+            return NextResponse.redirect(
+                new URL('/admin/login?error=invalid', request.url),
+            );
         }
 
         // Find contact with this token
@@ -20,11 +22,16 @@ export async function GET(request: Request) {
         });
 
         if (!contact) {
-            return NextResponse.redirect(new URL('/admin/login?error=invalid', request.url));
+            return NextResponse.redirect(
+                new URL('/admin/login?error=invalid', request.url),
+            );
         }
 
         // Check if token is expired
-        if (!contact.adminTokenExpiry || contact.adminTokenExpiry < new Date()) {
+        if (
+            !contact.adminTokenExpiry ||
+            contact.adminTokenExpiry < new Date()
+        ) {
             // Clear expired token
             await prisma.contact.update({
                 where: { id: contact.id },
@@ -33,7 +40,9 @@ export async function GET(request: Request) {
                     adminTokenExpiry: null,
                 },
             });
-            return NextResponse.redirect(new URL('/admin/login?error=expired', request.url));
+            return NextResponse.redirect(
+                new URL('/admin/login?error=expired', request.url),
+            );
         }
 
         // Clear the token (single use)
@@ -52,6 +61,8 @@ export async function GET(request: Request) {
         return NextResponse.redirect(new URL('/admin', request.url));
     } catch (error) {
         console.error('Verify error:', error);
-        return NextResponse.redirect(new URL('/admin/login?error=unknown', request.url));
+        return NextResponse.redirect(
+            new URL('/admin/login?error=unknown', request.url),
+        );
     }
 }
