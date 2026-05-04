@@ -39,6 +39,22 @@ export default async function UnsubscribePage({
         data: { status: 'UNSUBSCRIBED', updatedAt: new Date() },
     });
 
+    // Mark the most recent campaign email as unsubscribed for analytics
+    const latestEmail = await prisma.campaignEmail.findFirst({
+        where: { contactId: contact.id },
+        orderBy: { sentAt: 'desc' },
+    });
+
+    if (latestEmail) {
+        await prisma.campaignEmail.update({
+            where: { id: latestEmail.id },
+            data: {
+                status: 'UNSUBSCRIBED',
+                unsubscribedAt: new Date(),
+            },
+        });
+    }
+
     return (
         <div className='min-h-screen flex items-center justify-center bg-gray-50 font-sans'>
             <div className='max-w-md w-full bg-white p-8 rounded-lg shadow-md text-center border-t-4 border-red-500'>

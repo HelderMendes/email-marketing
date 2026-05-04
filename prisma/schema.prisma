@@ -63,14 +63,29 @@ model Campaign {
 }
 
 model CampaignEmail {
-  id         Int      @id @default(autoincrement())
-  campaignId Int
-  contactId  Int
-  status     String   @default("SENT") // SENT, OPENED, CLICKED
-  sentAt     DateTime @default(now())
+  id             Int       @id @default(autoincrement())
+  campaignId     Int
+  contactId      Int
+  trackingId     String    @unique @default(uuid())
+  status         String    @default("SENT") // SENT, OPENED, CLICKED, UNSUBSCRIBED
+  sentAt         DateTime  @default(now())
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  clickCount     Int       @default(0)
+  unsubscribedAt DateTime?
 
-  campaign Campaign @relation(fields: [campaignId], references: [id])
-  contact  Contact  @relation(fields: [contactId], references: [id])
+  campaign Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact  Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  clicks   EmailClick[]
+}
+
+model EmailClick {
+  id              Int      @id @default(autoincrement())
+  campaignEmailId Int
+  url             String
+  clickedAt       DateTime @default(now())
+
+  campaignEmail CampaignEmail @relation(fields: [campaignEmailId], references: [id], onDelete: Cascade)
 }
 
 model SendJob {

@@ -1,6 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { renderEmailHtml, type EmailTheme } from '@/lib/email-renderer';
+import {
+    renderEmailHtml,
+    wrapLinksWithTracking,
+    type EmailTheme,
+} from '@/lib/email-renderer';
+import { randomUUID } from 'crypto';
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
 const BATCH_SIZE = 50;
@@ -175,23 +180,30 @@ export async function POST(
             });
         }
 
-        // Render the email template once
-        const fullHtml = renderEmailHtml(
-            campaign.htmlContent || '',
-            (campaign.theme as unknown as EmailTheme) || undefined,
-            { campaignId: campaign.id },
-        );
-
         let batchSentCount = 0;
         let batchFailedCount = 0;
 
+        const appUrl =
+            process.env.NEXT_PUBLIC_APP_URL || 'https://lookoutmode.nl';
+
         // Process this batch
         for (const contact of contactsToSend) {
-            const unsubscribeUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://lookoutmode.nl'}/unsubscribe/${contact.unsubscribeToken}`;
-            const preferencesUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://lookoutmode.nl'}/preferences/${contact.unsubscribeToken}`;
-            const viewUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://lookoutmode.nl'}/campaigns/${campaign.id}/webview`;
+            // Generate unique tracking ID for this email
+            const trackingId = randomUUID();
 
-            const emailHtml = fullHtml
+            const unsubscribeUrl = `${appUrl}/unsubscribe/${contact.unsubscribeToken}`;
+            const preferencesUrl = `${appUrl}/preferences/${contact.unsubscribeToken}`;
+            const viewUrl = `${appUrl}/campaigns/${campaign.id}/webview`;
+
+            // Render with tracking pixel
+            const renderedHtml = renderEmailHtml(
+                campaign.htmlContent || '',
+                (campaign.theme as unknown as EmailTheme) || undefined,
+                { campaignId: campaign.id, trackingId },
+            );
+
+            // Replace placeholders
+            let emailHtml = renderedHtml
                 .replace(/{{firstName}}/g, contact.firstName || '')
                 .replace(/{{lastName}}/g, contact.lastName || '')
                 .replace(/{{email}}/g, contact.email)
@@ -202,6 +214,9 @@ export async function POST(
                     /{{shareUrl}}/g,
                     `mailto:?subject=Look Out Mode Newsletter&body=Check out our latest news: ${viewUrl}`,
                 );
+
+            // Wrap links with click tracking
+            emailHtml = wrapLinksWithTracking(emailHtml, trackingId, appUrl);
 
             let sendSuccess = false;
 
@@ -229,11 +244,12 @@ export async function POST(
                 batchFailedCount++;
             }
 
-            // Record the email attempt
+            // Record the email attempt with tracking ID
             await prisma.campaignEmail.create({
                 data: {
                     campaignId,
                     contactId: contact.id,
+                    trackingId,
                     status: sendSuccess ? 'SENT' : 'FAILED',
                     sentAt: new Date(),
                 },

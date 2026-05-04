@@ -9,6 +9,7 @@ import {
     Eye,
     Pencil,
     Send,
+    BarChart3,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -100,6 +101,15 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
                             <Eye className='mr-2 h-4 w-4' /> View Email
                         </Link>
                     </DropdownMenuItem>
+                    {campaign.status === 'SENT' && (
+                        <DropdownMenuItem asChild>
+                            <Link
+                                href={`/admin/campaigns/${campaign.id}/analytics`}
+                            >
+                                <BarChart3 className='mr-2 h-4 w-4' /> Analytics
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
                     {campaign.status !== 'SENT' && (
                         <DropdownMenuItem onClick={() => setIsSendOpen(true)}>
                             <Send className='mr-2 h-4 w-4' /> Send Campaign

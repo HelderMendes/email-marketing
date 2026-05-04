@@ -72,7 +72,11 @@ export const defaultTheme: EmailTheme = {
 export function renderEmailHtml(
     content: string,
     theme: EmailTheme = defaultTheme,
-    options?: { viewInBrowserUrl?: string; campaignId?: number },
+    options?: {
+        viewInBrowserUrl?: string;
+        campaignId?: number;
+        trackingId?: string;
+    },
 ) {
     const viewInBrowserUrl =
         options?.viewInBrowserUrl ||
@@ -168,6 +172,26 @@ export function renderEmailHtml(
       color: ${textColor} !important;
       opacity: 1 !important;
     }
+
+    /* Header link hover */
+    .header-link {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s ease-in-out;
+    }
+    .header-link:hover {
+      color: ${linkColor} !important;
+    }
+
+    /* Instagram button hover */
+    .instagram-btn {
+      transition: all 0.2s ease-in-out;
+    }
+    .instagram-btn:hover {
+      color: ${instagramButtonBg} !important;
+      background-color: ${instagramButtonText} !important;
+      border-color: ${instagramButtonBg} !important;
+    }
   </style>
 </head>
 
@@ -224,7 +248,7 @@ export function renderEmailHtml(
     <!-- PRE-FOOTER / INSTAGRAM BUTTON -->
     <tr>
       <td align="center" style="background-color: ${preFooterBg}; padding: 30px 0px;">
-        <a href="https://www.instagram.com/lookoutmode/" target="_blank" style="display: inline-block; padding: 10px 60px; background-color: ${instagramButtonBg}; color: ${instagramButtonText}; font-size: 18px; font-weight: 500; text-decoration: none; border-radius: ${instagramButtonRadius}px; border: 2px solid ${instagramButtonBorder}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+        <a href="https://www.instagram.com/lookoutmode/" target="_blank" class="instagram-btn" style="display: inline-block; padding: 10px 60px; background-color: ${instagramButtonBg}; color: ${instagramButtonText}; font-size: 18px; font-weight: 500; text-decoration: none; border-radius: ${instagramButtonRadius}px; border: 2px solid ${instagramButtonBorder}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
           Volg lookoutmode op instagram
         </a>
       </td>
@@ -251,11 +275,11 @@ export function renderEmailHtml(
         }
         
         <p style="margin: 0; padding-bottom: 8px; font-size: 15px; line-height: 1.6;">
-          You can <a href="{{preferencesUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">update your preferences</a> or <a href="{{unsubscribeUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">unsubscribe</a> from this list.
+          Je kunt je <a href="{{preferencesUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">voorkeuren bijwerken</a> of je <a href="{{unsubscribeUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">uitschrijven</a> van deze lijst.
         </p>
 
         <p style="margin: 0; padding-bottom: 2px; font-size: 15px; line-height: 1.6;">
-          <a href="{{shareUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">Share the email campaigne with a friend</a>
+          <a href="{{shareUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">Deel deze nieuwsbrief met een vriend</a>
         </p>
       </td>
           <tr>
@@ -265,8 +289,39 @@ export function renderEmailHtml(
     </tr>
 
   </table>
-
+${
+    options?.trackingId
+        ? `
+  <!-- Tracking Pixel -->
+  <img src="${appUrl}/api/track/open/${options.trackingId}" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:0;" />
+`
+        : ''
+}
 </body>
 </html>
   `;
+}
+
+// Helper function to wrap links with click tracking
+export function wrapLinksWithTracking(
+    html: string,
+    trackingId: string,
+    appUrl: string,
+): string {
+    // Match href attributes but exclude tracking URLs and special placeholders
+    const linkRegex = /href="(https?:\/\/[^"]+)"/g;
+
+    return html.replace(linkRegex, (match, url) => {
+        // Don't wrap tracking URLs, unsubscribe placeholders, or already wrapped URLs
+        if (
+            url.includes('/api/track/') ||
+            url.includes('{{') ||
+            url.includes(appUrl + '/api/')
+        ) {
+            return match;
+        }
+
+        const encodedUrl = encodeURIComponent(url);
+        return `href="${appUrl}/api/track/click/${trackingId}?url=${encodedUrl}"`;
+    });
 }
