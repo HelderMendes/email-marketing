@@ -31,6 +31,11 @@ export interface EmailTheme {
     // Social icon styling
     socialIconBg: string;
     socialIconColor: string;
+    // Footer content
+    footerAddress?: string;
+    footerExplanation?: string;
+    footerLogo?: 'white' | 'black';
+    footerCopyrightColor?: string;
 }
 
 export const defaultTheme: EmailTheme = {
@@ -57,6 +62,11 @@ export const defaultTheme: EmailTheme = {
     contentMaxWidth: 600,
     socialIconBg: '#333333',
     socialIconColor: '#ffffff',
+    footerAddress: 'Huizerweg 45 – 1401 GH, Bussum',
+    footerExplanation:
+        'U ontvangt deze nieuwsbrief van LOOK OUT MODE omdat u ons daar toestemming voor heeft gegeven. Zo nu en dan sturen wij u een mailtje over geplande uitverkopen, nieuwe collecties en andere belangrijke dingen. Wij zullen het kort en informatief houden. Beloofd!',
+    footerLogo: 'white',
+    footerCopyrightColor: 'rgba(0,0,0,0.6)',
 };
 
 export function renderEmailHtml(
@@ -87,7 +97,20 @@ export function renderEmailHtml(
         contentPaddingX,
         contentPaddingY,
         contentMaxWidth,
+        footerAddress,
+        footerExplanation,
+        footerLogo,
+        footerCopyrightColor,
     } = { ...defaultTheme, ...theme };
+
+    const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        'https://email-marketing-blush.vercel.app';
+
+    const logoFile =
+        footerLogo === 'black'
+            ? 'logo_LookoutMode_black.png'
+            : 'logo_LookoutMode.webp';
 
     // Use outer background color if content bg is transparent
     const contentBg =
@@ -200,7 +223,7 @@ export function renderEmailHtml(
 
     <!-- PRE-FOOTER / INSTAGRAM BUTTON -->
     <tr>
-      <td align="center" style="background-color: ${preFooterBg}; padding: 20px 20px;">
+      <td align="center" style="background-color: ${preFooterBg}; padding: 30px 0px;">
         <a href="https://www.instagram.com/lookoutmode/" target="_blank" style="display: inline-block; padding: 10px 60px; background-color: ${instagramButtonBg}; color: ${instagramButtonText}; font-size: 18px; font-weight: 500; text-decoration: none; border-radius: ${instagramButtonRadius}px; border: 2px solid ${instagramButtonBorder}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
           Volg lookoutmode op instagram
         </a>
@@ -209,23 +232,24 @@ export function renderEmailHtml(
 
     <!-- FOOTER -->
     <tr>
-      <td align="center" style="background-color: ${footerBg}; color: ${footerText}; padding: 20px; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+      <td align="center" style="background-color: ${footerBg}; color: ${footerText}; padding: 0 20px 20px; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
         
         <div style="margin: 0 auto;">
           <a href="https://lookoutmode.nl/" target="_blank" style="text-decoration: none;">
-            <img src="${process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://lookoutmode.nl'}/logo_LookoutMode.webp" alt="LOOK OUT mode" width="370" style="display: block; margin: 0 auto; max-width: 100%; height: auto; border: none;" />
+            <img src="${appUrl}/${logoFile}" alt="LOOK OUT mode" width="370" style="display: block; margin: 0 auto; max-width: 100%; height: auto; border: none;" />
           </a>
         </div>
         
-        <p style="margin: 0 0 15px; font-size: 26px;">Huizerweg 45 &ndash; 1401 GH, Bussum</p>
+        <p style="margin: 0 0 15px; font-size: 26px;">${footerAddress || ''}</p>
         
-        <p style="margin: 0 auto; padding-bottom: 15px; text-align: center; max-width: 500px; color: rgb(200,150,170); font-size: 15px; line-height: 1.6;">
-          U ontvangt deze nieuwsbrief van LOOK OUT MODE omdat u ons daar toestemming voor heeft gegeven. Zo nu en dan sturen wij u een mailtje over geplande uitverkopen, nieuwe collecties en andere belangrijke dingen. Wij zullen het kort en informatief houden. Beloofd!
-        </p>
+        ${
+            footerExplanation
+                ? `<p style="margin: 0 auto; padding-bottom: 15px; text-align: center; max-width: 500px; color: ${footerText}; font-size: 15px; line-height: 1.6;">
+          ${footerExplanation}
+        </p>`
+                : ''
+        }
         
-        <p style="margin: 0; padding-bottom: 8px; font-size: 15px; line-height: 1.6;">
-          Want to change how you receive these emails?
-        </p>
         <p style="margin: 0; padding-bottom: 8px; font-size: 15px; line-height: 1.6;">
           You can <a href="{{preferencesUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">update your preferences</a> or <a href="{{unsubscribeUrl}}" style="color: ${footerLinkColor}; text-decoration: underline;">unsubscribe</a> from this list.
         </p>
@@ -236,7 +260,7 @@ export function renderEmailHtml(
       </td>
           <tr>
       <td align="center" style="background-color: ${footerBg}; color: ${footerText}; padding: 0 20px 20px; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-        <p style="margin: 0 ; font-size: 13px; color: black; opacity: 60%; ">Copyright &copy; ${new Date().getFullYear()} Look Out Mode, All rights reserved.</p>
+        <p style="margin: 0; font-size: 13px; color: ${footerCopyrightColor || 'rgba(0,0,0,0.6)'};">Copyright &copy; ${new Date().getFullYear()} Look Out Mode, All rights reserved.</p>
 
     </tr>
 

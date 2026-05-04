@@ -26,6 +26,7 @@ import {
     TestTube,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
     defaultTheme,
     renderEmailHtml,
@@ -391,11 +392,15 @@ export function EditForm({
                                                 rel='noopener noreferrer'
                                                 style={{ display: 'block' }}
                                             >
-                                                <img
+                                                <Image
                                                     src={img.src}
                                                     alt=''
+                                                    width={600}
+                                                    height={400}
+                                                    unoptimized
                                                     style={{
                                                         width: '100%',
+                                                        height: 'auto',
                                                         display: 'block',
                                                         border: 0,
                                                     }}
@@ -439,11 +444,48 @@ export function EditForm({
                                 color: theme.footerText || '#ffffff',
                             }}
                         >
-                            <p className='m-0 mb-4'>
-                                © {new Date().getFullYear()} Look Out Mode
-                            </p>
-                            <p className='m-0 mb-4 text-xs opacity-70'>
+                            {/* Logo */}
+                            <div className='mb-4'>
+                                <Image
+                                    src={
+                                        theme.footerLogo === 'black'
+                                            ? '/logo_LookoutMode_black.png'
+                                            : '/logo_LookoutMode.webp'
+                                    }
+                                    alt='LOOK OUT mode'
+                                    width={200}
+                                    height={80}
+                                    className='mx-auto'
+                                    style={{
+                                        maxWidth: '200px',
+                                        height: 'auto',
+                                    }}
+                                />
+                            </div>
+                            <p className='m-0 mb-2 text-lg'>
                                 Huizerweg 45 – 1401 GH, Bussum
+                            </p>
+                            <p
+                                className='m-0 mb-4 text-xs max-w-md mx-auto'
+                                style={{ color: theme.footerText || '#ffffff' }}
+                            >
+                                U ontvangt deze nieuwsbrief van LOOK OUT MODE
+                                omdat u ons daar toestemming voor heeft gegeven.
+                                Zo nu en dan sturen wij u een mailtje over
+                                geplande uitverkopen, nieuwe collecties en
+                                andere belangrijke dingen. Wij zullen het kort
+                                en informatief houden. Beloofd!
+                            </p>
+                            <p
+                                className='m-0 mb-4'
+                                style={{
+                                    color:
+                                        theme.footerCopyrightColor ||
+                                        'rgba(0,0,0,0.6)',
+                                }}
+                            >
+                                © {new Date().getFullYear()} Look Out Mode, All
+                                rights reserved.
                             </p>
                             <p className='m-0 text-xs'>
                                 <span className='underline cursor-pointer'>
@@ -690,6 +732,45 @@ export function EditForm({
                                                 )
                                             }
                                         />
+                                        <div>
+                                            <Label className='text-sm'>
+                                                Footer Logo
+                                            </Label>
+                                            <select
+                                                value={
+                                                    theme.footerLogo || 'white'
+                                                }
+                                                onChange={(e) =>
+                                                    handleThemeChange(
+                                                        'footerLogo',
+                                                        e.target.value as
+                                                            | 'white'
+                                                            | 'black',
+                                                    )
+                                                }
+                                                className='mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm'
+                                            >
+                                                <option value='white'>
+                                                    White Logo
+                                                </option>
+                                                <option value='black'>
+                                                    Black Logo
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <ColorPicker
+                                            label='Copyright Text Color'
+                                            value={
+                                                theme.footerCopyrightColor ||
+                                                'rgba(0,0,0,0.6)'
+                                            }
+                                            onChange={(v) =>
+                                                handleThemeChange(
+                                                    'footerCopyrightColor',
+                                                    v,
+                                                )
+                                            }
+                                        />
                                     </div>
 
                                     {/* Social Icons Section */}
@@ -720,33 +801,6 @@ export function EditForm({
                         >
                             <ScrollArea className='h-full'>
                                 <div className='p-4 space-y-6'>
-                                    {/* Header Content */}
-                                    <div className='space-y-3'>
-                                        <h4 className='font-medium text-sm text-gray-500 uppercase tracking-wider'>
-                                            Header
-                                        </h4>
-                                        <div>
-                                            <Label className='text-sm'>
-                                                Header Text
-                                            </Label>
-                                            <Input
-                                                type='text'
-                                                value={
-                                                    theme.headerContent ||
-                                                    'LOOKOUT MODE )@'
-                                                }
-                                                onChange={(e) =>
-                                                    handleThemeChange(
-                                                        'headerContent',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder='Your brand name'
-                                                className='mt-1'
-                                            />
-                                        </div>
-                                    </div>
-
                                     {/* Email Header Content */}
                                     <div className='space-y-3'>
                                         <h4 className='font-medium text-sm text-gray-500 uppercase tracking-wider'>

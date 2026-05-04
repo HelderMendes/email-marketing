@@ -25,19 +25,15 @@ export function EmailFooter() {
                 <p className='mb-8 text-6xl '>
                     Huizerweg 45 &ndash; 1401 GH, Bussum
                     <br />
-                    Till the end of the world
                 </p>
                 <p className='mb-2 text-center text-[#aaaaaa] text-[14px] leading-relaxed'>
-                    ontvangt deze nieuwsbrief van LOOK OUT MODE omdat u ons daar
-                    toestemming voor heeft gegeven. Zo nu en dan sturen wij u
-                    een mailtje over geplande uitverkopen, nieuwe collecties en
-                    andere belangrijke dingen. Wij zullen het kort en
+                    U ontvangt deze nieuwsbrief van LOOK OUT MODE omdat u ons
+                    daar toestemming voor heeft gegeven. Zo nu en dan sturen wij
+                    u een mailtje over geplande uitverkopen, nieuwe collecties
+                    en andere belangrijke dingen. Wij zullen het kort en
                     informatief houden. Beloofd!
                 </p>
                 <div className='mb-2 text-[14px]'>
-                    <p className='mb-1'>
-                        Want to change how you receive these emails?
-                    </p>
                     <p>
                         You can{' '}
                         <Link
