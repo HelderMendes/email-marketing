@@ -15,10 +15,14 @@ export async function GET(
         return new NextResponse('Not found', { status: 404 });
     }
 
+    // Get origin from request URL for correct logo paths
+    const url = new URL(request.url);
+    const appUrl = `${url.protocol}//${url.host}`;
+
     const html = renderEmailHtml(
         campaign.htmlContent || '',
         (campaign.theme as unknown as EmailTheme) || undefined,
-        { campaignId: campaign.id },
+        { campaignId: campaign.id, appUrl },
     );
 
     return new NextResponse(html, {

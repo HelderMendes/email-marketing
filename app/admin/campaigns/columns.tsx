@@ -5,6 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { SerializedCampaign } from './types';
 import { ActionsCell } from './actions-cell';
 
+function formatDate(isoString: string): string {
+    const date = new Date(isoString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 export type { SerializedCampaign };
 
 export const columns: ColumnDef<SerializedCampaign>[] = [
@@ -37,7 +45,7 @@ export const columns: ColumnDef<SerializedCampaign>[] = [
         header: 'Sent At',
         cell: ({ row }) => {
             const d = row.getValue('sentAt');
-            return d ? new Date(d as string).toLocaleDateString() : '-';
+            return d ? formatDate(d as string) : '-';
         },
     },
     {

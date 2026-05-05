@@ -76,6 +76,7 @@ export function renderEmailHtml(
         viewInBrowserUrl?: string;
         campaignId?: number;
         trackingId?: string;
+        appUrl?: string;
     },
 ) {
     const viewInBrowserUrl =
@@ -108,6 +109,7 @@ export function renderEmailHtml(
     } = { ...defaultTheme, ...theme };
 
     const appUrl =
+        options?.appUrl ||
         process.env.NEXT_PUBLIC_APP_URL ||
         'https://email-marketing-blush.vercel.app';
 
