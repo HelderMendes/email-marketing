@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ trackingId: string }> }
+    { params }: { params: Promise<{ trackingId: string }> },
 ) {
     const { trackingId } = await params;
     const url = request.nextUrl.searchParams.get('url');
