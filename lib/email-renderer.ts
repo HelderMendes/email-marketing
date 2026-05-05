@@ -111,7 +111,7 @@ export function renderEmailHtml(
     const appUrl =
         options?.appUrl ||
         process.env.NEXT_PUBLIC_APP_URL ||
-        'https://email-marketing-blush.vercel.app';
+        'https://lookoutmode.nl';
 
     const logoFile =
         footerLogo === 'black'

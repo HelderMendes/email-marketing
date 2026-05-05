@@ -199,7 +199,7 @@ export async function POST(
             const renderedHtml = renderEmailHtml(
                 campaign.htmlContent || '',
                 (campaign.theme as unknown as EmailTheme) || undefined,
-                { campaignId: campaign.id, trackingId },
+                { campaignId: campaign.id, trackingId, appUrl },
             );
 
             // Replace placeholders

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { renderEmailHtml, type EmailTheme } from '@/lib/email-renderer';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -57,8 +58,17 @@ export default async function PublicCampaignPage({ params }: Props) {
     }
 
     const theme = (campaign.theme as unknown as EmailTheme) || undefined;
+
+    // Get host from headers for correct logo URL
+    const headersList = await headers();
+    const host = headersList.get('host') || 'lookoutmode.nl';
+    const protocol = headersList.get('x-forwarded-proto') || 'https';
+    const appUrl = `${protocol}://${host}`;
+
     // Don't show "view in browser" link since we're already on the public page
-    const htmlContent = renderEmailHtml(campaign.htmlContent || '', theme);
+    const htmlContent = renderEmailHtml(campaign.htmlContent || '', theme, {
+        appUrl,
+    });
 
     return (
         <html>
