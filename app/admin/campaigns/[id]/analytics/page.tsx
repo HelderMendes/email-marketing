@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { ArrowLeft, Mail, Eye, MousePointer, UserMinus } from 'lucide-react';
 import { AnalyticsTable } from './analytics-table';
 
+// Disable caching to always show fresh data
+export const dynamic = 'force-dynamic';
+
 export default async function CampaignAnalyticsPage({
     params,
 }: {
