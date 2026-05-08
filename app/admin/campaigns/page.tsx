@@ -3,6 +3,9 @@ import { SerializedCampaign } from './types';
 import { CreateCampaignButton } from './create-campaign-button';
 import { CampaignsTable } from './campaigns-table';
 
+// Disable caching to always show fresh data
+export const dynamic = 'force-dynamic';
+
 async function getCampaigns(): Promise<SerializedCampaign[]> {
     const data = await prisma.campaign.findMany({
         orderBy: { createdAt: 'desc' },
