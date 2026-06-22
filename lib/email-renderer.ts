@@ -210,8 +210,8 @@ export function renderEmailHtml(
         <a href="${viewInBrowserUrl}" 
            target="_blank" 
            class="view-in-browser"
-           style="color: #f5f5f5; font-size: 20px !important; text-decoration: none !important; ">
-          Bekijk deze email in je browser
+           style="color: #2e2e2e; font-size: 20px !important; text-decoration: none !important; ">
+        color 
         </a>
       </td>
     </tr>
