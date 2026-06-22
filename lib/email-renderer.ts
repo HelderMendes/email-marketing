@@ -211,7 +211,7 @@ export function renderEmailHtml(
            target="_blank" 
            class="view-in-browser"
            style="color: #2e2e2e; font-size: 20px !important; text-decoration: none !important; ">
-        color 
+        Bekijk deze email in je browser 
         </a>
       </td>
     </tr>
