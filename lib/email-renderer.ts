@@ -199,18 +199,18 @@ export function renderEmailHtml(
 
 <body style="background-color: ${backgroundColor}; color: ${textColor}; padding: 0; margin: 0;">
   
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color: ${backgroundColor};">
     
 <!-- VIEW IN BROWSER -->
     ${
         viewInBrowserUrl
             ? `
     <tr>
-      <td align="center" style="background-color: ${backgroundColor}; padding: 10px 10px 0 10px;">
+      <td align="center" style="background-color: ${backgroundColor}; padding: 10px 20px 0 20px;">
         <a href="${viewInBrowserUrl}" 
            target="_blank" 
            class="view-in-browser"
-           style="color: #2e2e2e; font-size: 20px !important; text-decoration: none !important; ">
+           style="color: #fff; font-size: 20px !important; text-decoration: none !important; ">
         Bekijk deze email in je browser 
         </a>
       </td>
@@ -236,8 +236,8 @@ export function renderEmailHtml(
 
     <!-- MAIN BODY -->
     <tr>
-      <td align="center" style="background-color: ${contentBg}; padding: 0px">
-        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: ${contentMaxWidth}px; background-color: ${contentBg}; border-radius: 0px; overflow: hidden; box-shadow: none;">
+      <td align="center" style="background-color: ${backgroundColor}; padding: 0 20px;">
+        <table cellpadding="0" cellspacing="0" role="presentation" style="width: 100%; max-width: ${contentMaxWidth}px; background-color: ${contentBg}; border-radius: 0px; overflow: hidden; box-shadow: none; margin: 0 auto;">
           <tr>
             <td style="padding: ${contentPaddingY}px ${contentPaddingX}px; font-size: 20px; line-height: 1.6;">
               ${content}
@@ -249,10 +249,12 @@ export function renderEmailHtml(
 
     <!-- PRE-FOOTER / INSTAGRAM BUTTON -->
     <tr>
-      <td align="center" style="background-color: ${preFooterBg}; padding: 30px 0px;">
+      <td align="center" style="background-color: ${backgroundColor}; padding: 30px 20px;">
+        <div style="background-color: ${preFooterBg}; max-width: ${contentMaxWidth}px; margin: 0 auto; padding: 30px 0;">
         <a href="https://www.instagram.com/lookoutmode/" target="_blank" class="instagram-btn" style="display: inline-block; padding: 10px 60px; background-color: ${instagramButtonBg}; color: ${instagramButtonText}; font-size: 18px; font-weight: 500; text-decoration: none; border-radius: ${instagramButtonRadius}px; border: 2px solid ${instagramButtonBorder}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
           Volg lookoutmode op instagram
         </a>
+        </div>
       </td>
     </tr>
 

@@ -289,12 +289,27 @@ export function EditForm({
             {/* Main Content Area */}
             <div className='flex-1 flex overflow-hidden'>
                 {/* Left Sidebar - Image Stack Editor */}
-                <aside className='w-80 bg-white border-r shrink-0 flex flex-col'>
-                    <div className='p-4 border-b'>
-                        <h3 className='font-semibold text-sm text-gray-500 uppercase tracking-wider'>
+                <aside
+                    className='w-80 border-r shrink-0 flex flex-col'
+                    style={{ backgroundColor: theme.headerBg || '#ffffff' }}
+                >
+                    <div
+                        className='p-4 border-b'
+                        style={{ backgroundColor: theme.headerBg || '#ffffff' }}
+                    >
+                        <h3
+                            className='font-semibold text-sm uppercase tracking-wider'
+                            style={{ color: theme.headerText || '#111111' }}
+                        >
                             Newsletter Images
                         </h3>
-                        <p className='text-xs text-gray-400 mt-1'>
+                        <p
+                            className='text-xs mt-1'
+                            style={{
+                                color: theme.headerText || '#111111',
+                                opacity: 0.7,
+                            }}
+                        >
                             Add images that link to your website
                         </p>
                     </div>
@@ -995,7 +1010,7 @@ export function EditForm({
                                     campaignId: campaign.id,
                                 },
                             )}
-                            className='w-full h-full bg-white'
+                            className='w-full h-full'
                             title='Preview'
                         />
                     </div>
