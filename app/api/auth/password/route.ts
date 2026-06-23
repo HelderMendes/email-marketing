@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSessionToken, setSessionCookie } from '@/lib/auth';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-
 export async function POST(request: Request) {
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
     if (!ADMIN_PASSWORD) {
         return NextResponse.json(
             { error: 'Password login not configured' },
