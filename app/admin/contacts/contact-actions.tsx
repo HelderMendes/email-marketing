@@ -15,7 +15,12 @@ import { Progress } from '@/components/ui/progress';
 
 import { CreateContactDialog } from './create-contact-dialog';
 
-export function ContactActions() {
+type ContactActionsProps = {
+    groupId?: number;
+    groupName?: string;
+};
+
+export function ContactActions({ groupId, groupName }: ContactActionsProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [processing, setProcessing] = useState(false);
@@ -86,7 +91,7 @@ export function ContactActions() {
 
     return (
         <div className='flex items-center gap-2'>
-            <CreateContactDialog />
+            <CreateContactDialog groupId={groupId} groupName={groupName} />
 
             <Dialog
                 open={isUploading}

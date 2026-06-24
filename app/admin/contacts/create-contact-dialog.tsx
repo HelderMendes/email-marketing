@@ -17,7 +17,15 @@ import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Checkbox } from '@/components/ui/checkbox';
 
-export function CreateContactDialog() {
+type CreateContactDialogProps = {
+    groupId?: number;
+    groupName?: string;
+};
+
+export function CreateContactDialog({
+    groupId,
+    groupName,
+}: CreateContactDialogProps) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -48,7 +56,10 @@ export function CreateContactDialog() {
             const res = await fetch('/api/contacts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
+                body: JSON.stringify({
+                    ...form,
+                    groupIds: groupId ? [groupId] : undefined,
+                }),
             });
 
             if (!res.ok) {
@@ -91,7 +102,9 @@ export function CreateContactDialog() {
                 <DialogHeader>
                     <DialogTitle>Add New Contact</DialogTitle>
                     <DialogDescription>
-                        Manually add a new contact to your list.
+                        {groupId && groupName
+                            ? `Add a new contact to "${groupName}" group.`
+                            : 'Manually add a new contact to your list.'}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>

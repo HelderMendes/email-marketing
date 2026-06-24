@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +15,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, CheckCircle, Key } from 'lucide-react';
 
 export default function LoginPage() {
-    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -65,7 +63,7 @@ export default function LoginPage() {
             const data = await res.json();
 
             if (res.ok) {
-                router.push('/admin');
+                window.location.href = '/admin';
             } else {
                 setError(data.error || 'Invalid credentials');
             }

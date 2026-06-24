@@ -10,6 +10,7 @@ import {
     Pencil,
     Send,
     BarChart3,
+    XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -77,6 +78,26 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
         }
     };
 
+    const handleCancelSchedule = async () => {
+        if (
+            !confirm('Are you sure you want to cancel this scheduled campaign?')
+        )
+            return;
+        try {
+            const res = await fetch(`/api/campaigns/${campaign.id}/schedule`, {
+                method: 'DELETE',
+            });
+            if (res.ok) {
+                router.refresh();
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to cancel schedule');
+            }
+        } catch (e) {
+            alert('Failed to cancel schedule');
+        }
+    };
+
     return (
         <>
             <DropdownMenu>
@@ -110,11 +131,22 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
                             </Link>
                         </DropdownMenuItem>
                     )}
-                    {campaign.status !== 'SENT' && (
-                        <DropdownMenuItem onClick={() => setIsSendOpen(true)}>
-                            <Send className='mr-2 h-4 w-4' /> Send Campaign
+                    {campaign.status === 'SCHEDULED' && (
+                        <DropdownMenuItem
+                            onClick={handleCancelSchedule}
+                            className='text-orange-600 focus:text-orange-600'
+                        >
+                            <XCircle className='mr-2 h-4 w-4' /> Cancel Schedule
                         </DropdownMenuItem>
                     )}
+                    {campaign.status !== 'SENT' &&
+                        campaign.status !== 'SCHEDULED' && (
+                            <DropdownMenuItem
+                                onClick={() => setIsSendOpen(true)}
+                            >
+                                <Send className='mr-2 h-4 w-4' /> Send Campaign
+                            </DropdownMenuItem>
+                        )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setIsRenameOpen(true)}>
                         <Pencil className='mr-2 h-4 w-4' /> Rename

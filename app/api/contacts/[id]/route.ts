@@ -8,7 +8,7 @@ export async function PATCH(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { email, firstName, lastName, tags, status } = body;
+        const { email, firstName, lastName, tags, status, groupIds } = body;
 
         const contact = await prisma.contact.update({
             where: { id: parseInt(id) },
@@ -18,7 +18,14 @@ export async function PATCH(
                 lastName,
                 tags,
                 status,
+                // Update group connections if groupIds is provided
+                ...(groupIds !== undefined && {
+                    groups: {
+                        set: groupIds.map((gid: number) => ({ id: gid })),
+                    },
+                }),
             },
+            include: { groups: true },
         });
 
         return NextResponse.json(contact);

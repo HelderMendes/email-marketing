@@ -229,7 +229,10 @@ export function ContactsClient({
                     </p>
                 </div>
                 <div className='flex gap-2 items-center'>
-                    <ContactActions />
+                    <ContactActions
+                        groupId={groupId}
+                        groupName={groups.find((g) => g.id === groupId)?.name}
+                    />
                 </div>
             </div>
 
@@ -401,6 +404,7 @@ export function ContactsClient({
                 contact={selectedContact}
                 open={editDialogOpen}
                 onOpenChange={setEditDialogOpen}
+                availableGroups={groups}
             />
         </div>
     );

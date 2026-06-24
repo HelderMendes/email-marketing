@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { format, addMinutes, setHours, setMinutes } from 'date-fns';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import {
     Dialog,
     DialogContent,
@@ -18,9 +20,14 @@ import {
     Mail,
     AlertTriangle,
     Users,
+    Clock,
+    Calendar,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+
+const AMSTERDAM_TZ = 'Europe/Amsterdam';
 
 /**
  * 📝 Teaching note: Discriminated union for state management.
@@ -29,10 +36,14 @@ import { Label } from '@/components/ui/label';
  *
  * For example, you can't have isLoading=true AND isSuccess=true simultaneously.
  */
+type SendMode = 'now' | 'scheduled';
+
 type SendState =
     | { _tag: 'idle' }
     | { _tag: 'confirming' }
     | { _tag: 'starting' }
+    | { _tag: 'scheduling' }
+    | { _tag: 'scheduled'; scheduledAt: Date }
     | {
           _tag: 'sending';
           sentCount: number;
@@ -73,12 +84,23 @@ export function SendCampaignDialog({
 }: SendCampaignDialogProps) {
     const [state, setState] = useState<SendState>({ _tag: 'idle' });
     const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
+    const [sendMode, setSendMode] = useState<SendMode>('now');
+    const [scheduledDate, setScheduledDate] = useState<string>('');
+    const [scheduledTime, setScheduledTime] = useState<string>('');
 
     // Reset state when dialog opens
     useEffect(() => {
         if (open) {
             setState({ _tag: 'confirming' });
             setSelectedGroups([]);
+            setSendMode('now');
+            // Default to tomorrow at 10:00 Amsterdam time
+            const now = new Date();
+            const amsterdamNow = toZonedTime(now, AMSTERDAM_TZ);
+            const tomorrow = addMinutes(amsterdamNow, 24 * 60);
+            const defaultDate = setHours(setMinutes(tomorrow, 0), 10);
+            setScheduledDate(format(defaultDate, 'yyyy-MM-dd'));
+            setScheduledTime('10:00');
         } else {
             setState({ _tag: 'idle' });
         }
@@ -122,7 +144,66 @@ export function SendCampaignDialog({
         return data.status === 'COMPLETED';
     }, [campaignId]);
 
+    const getScheduledDateTime = (): Date | null => {
+        if (!scheduledDate || !scheduledTime) return null;
+        // Parse as Amsterdam time, then convert to UTC
+        const localDateTime = new Date(`${scheduledDate}T${scheduledTime}:00`);
+        return fromZonedTime(localDateTime, AMSTERDAM_TZ);
+    };
+
+    const scheduleCampaign = async () => {
+        const scheduledAt = getScheduledDateTime();
+        if (!scheduledAt) {
+            setState({
+                _tag: 'error',
+                message: 'Please select a valid date and time',
+            });
+            return;
+        }
+
+        // Check if scheduled time is in the future
+        if (scheduledAt <= new Date()) {
+            setState({
+                _tag: 'error',
+                message: 'Scheduled time must be in the future',
+            });
+            return;
+        }
+
+        setState({ _tag: 'scheduling' });
+
+        try {
+            const res = await fetch(`/api/campaigns/${campaignId}/schedule`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    groupIds: selectedGroups.length > 0 ? selectedGroups : null,
+                    scheduledAt: scheduledAt.toISOString(),
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to schedule campaign');
+            }
+
+            setState({ _tag: 'scheduled', scheduledAt });
+            onComplete?.();
+        } catch (error) {
+            setState({
+                _tag: 'error',
+                message:
+                    error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    };
+
     const startSending = async () => {
+        if (sendMode === 'scheduled') {
+            await scheduleCampaign();
+            return;
+        }
+
         setState({ _tag: 'starting' });
 
         try {
@@ -178,6 +259,7 @@ export function SendCampaignDialog({
     const canClose =
         state._tag === 'confirming' ||
         state._tag === 'completed' ||
+        state._tag === 'scheduled' ||
         state._tag === 'error';
 
     return (
@@ -248,17 +330,95 @@ export function SendCampaignDialog({
                                 </div>
                             )}
 
+                            {/* Send Mode Toggle */}
+                            <div className='space-y-3'>
+                                <Label className='text-sm font-medium'>
+                                    When to send
+                                </Label>
+                                <div className='flex gap-2'>
+                                    <Button
+                                        type='button'
+                                        variant={
+                                            sendMode === 'now'
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size='sm'
+                                        onClick={() => setSendMode('now')}
+                                        className='flex-1'
+                                    >
+                                        <Mail className='mr-2 h-4 w-4' />
+                                        Send Now
+                                    </Button>
+                                    <Button
+                                        type='button'
+                                        variant={
+                                            sendMode === 'scheduled'
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size='sm'
+                                        onClick={() => setSendMode('scheduled')}
+                                        className='flex-1'
+                                    >
+                                        <Clock className='mr-2 h-4 w-4' />
+                                        Schedule
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Schedule Date/Time Picker */}
+                            {sendMode === 'scheduled' && (
+                                <div className='space-y-3 rounded-lg border p-3 bg-muted/50'>
+                                    <div className='flex items-center gap-2'>
+                                        <Calendar className='h-4 w-4 text-muted-foreground' />
+                                        <Label className='text-sm font-medium'>
+                                            Schedule for (Amsterdam time)
+                                        </Label>
+                                    </div>
+                                    <div className='flex gap-2'>
+                                        <Input
+                                            type='date'
+                                            value={scheduledDate}
+                                            onChange={(e) =>
+                                                setScheduledDate(e.target.value)
+                                            }
+                                            min={format(
+                                                new Date(),
+                                                'yyyy-MM-dd',
+                                            )}
+                                            className='flex-1'
+                                        />
+                                        <Input
+                                            type='time'
+                                            value={scheduledTime}
+                                            onChange={(e) =>
+                                                setScheduledTime(e.target.value)
+                                            }
+                                            className='w-32'
+                                        />
+                                    </div>
+                                    <p className='text-xs text-muted-foreground'>
+                                        Central European Time (CET/CEST)
+                                    </p>
+                                </div>
+                            )}
+
                             <div className='flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950'>
                                 <AlertTriangle className='h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5' />
                                 <div className='text-sm'>
                                     <p className='font-medium text-amber-800 dark:text-amber-200'>
-                                        Ready to send?
+                                        {sendMode === 'now'
+                                            ? 'Ready to send?'
+                                            : 'Ready to schedule?'}
                                     </p>
                                     <p className='text-amber-700 dark:text-amber-300 mt-1'>
                                         {selectedGroups.length === 0
                                             ? 'This will send the campaign to all subscribed contacts.'
                                             : `This will send to contacts in the selected group${selectedGroups.length > 1 ? 's' : ''}.`}{' '}
-                                        This action cannot be undone.
+                                        {sendMode === 'now'
+                                            ? 'This action cannot be undone.'
+                                            : ''}
                                     </p>
                                 </div>
                             </div>
@@ -266,12 +426,59 @@ export function SendCampaignDialog({
                     )}
 
                     {/* Starting State */}
-                    {state._tag === 'starting' && (
+                    {(state._tag === 'starting' ||
+                        state._tag === 'scheduling') && (
                         <div className='flex flex-col items-center gap-4 py-6'>
                             <Loader2 className='h-8 w-8 animate-spin text-primary' />
                             <p className='text-sm text-muted-foreground'>
-                                Preparing to send...
+                                {state._tag === 'scheduling'
+                                    ? 'Scheduling campaign...'
+                                    : 'Preparing to send...'}
                             </p>
+                        </div>
+                    )}
+
+                    {/* Scheduled State */}
+                    {state._tag === 'scheduled' && (
+                        <div className='flex flex-col items-center gap-4 py-4'>
+                            <div className='rounded-full bg-blue-100 p-3 dark:bg-blue-900'>
+                                <Clock className='h-8 w-8 text-blue-600 dark:text-blue-400' />
+                            </div>
+                            <div className='text-center'>
+                                <p className='font-medium'>
+                                    Campaign scheduled!
+                                </p>
+                                <p className='text-sm text-muted-foreground mt-1'>
+                                    Will be sent on{' '}
+                                    {format(
+                                        toZonedTime(
+                                            state.scheduledAt,
+                                            AMSTERDAM_TZ,
+                                        ),
+                                        'PPP',
+                                    )}{' '}
+                                    at{' '}
+                                    {format(
+                                        toZonedTime(
+                                            state.scheduledAt,
+                                            AMSTERDAM_TZ,
+                                        ),
+                                        'HH:mm',
+                                    )}{' '}
+                                    (Amsterdam)
+                                </p>
+                                <p className='text-sm text-muted-foreground mt-2'>
+                                    <span className='font-medium'>To: </span>
+                                    {selectedGroups.length === 0
+                                        ? 'All contacts'
+                                        : groups
+                                              .filter((g) =>
+                                                  selectedGroups.includes(g.id),
+                                              )
+                                              .map((g) => g.name)
+                                              .join(', ')}
+                                </p>
+                            </div>
                         </div>
                     )}
 
@@ -352,13 +559,24 @@ export function SendCampaignDialog({
                                 Cancel
                             </Button>
                             <Button onClick={startSending}>
-                                <Mail className='mr-2 h-4 w-4' />
-                                Send Now
+                                {sendMode === 'now' ? (
+                                    <>
+                                        <Mail className='mr-2 h-4 w-4' />
+                                        Send Now
+                                    </>
+                                ) : (
+                                    <>
+                                        <Clock className='mr-2 h-4 w-4' />
+                                        Schedule
+                                    </>
+                                )}
                             </Button>
                         </>
                     )}
 
-                    {(state._tag === 'completed' || state._tag === 'error') && (
+                    {(state._tag === 'completed' ||
+                        state._tag === 'scheduled' ||
+                        state._tag === 'error') && (
                         <Button onClick={() => onOpenChange(false)}>
                             Close
                         </Button>

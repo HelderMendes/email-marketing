@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { SerializedContact, ContactGroup } from './types';
+import { SerializedContact } from './types';
 
 type GroupWithCount = {
     id: number;
@@ -34,9 +34,11 @@ export function EditContactDialog({
     contact,
     open,
     onOpenChange,
+    availableGroups = [],
 }: EditContactDialogProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
     const [form, setForm] = useState({
         email: '',
         firstName: '',
@@ -54,8 +56,18 @@ export function EditContactDialog({
                 tags: contact.tags || '',
                 status: contact.status as 'ACTIVE' | 'UNSUBSCRIBED' | 'BOUNCED',
             });
+            // Set initial selected groups from contact
+            setSelectedGroupIds(contact.groups?.map((g) => g.id) || []);
         }
     }, [contact]);
+
+    const toggleGroup = (groupId: number) => {
+        setSelectedGroupIds((prev) =>
+            prev.includes(groupId)
+                ? prev.filter((id) => id !== groupId)
+                : [...prev, groupId],
+        );
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -70,7 +82,7 @@ export function EditContactDialog({
             const res = await fetch(`/api/contacts/${contact.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
+                body: JSON.stringify({ ...form, groupIds: selectedGroupIds }),
             });
 
             if (!res.ok) throw new Error('Failed to update contact');
@@ -147,6 +159,47 @@ export function EditContactDialog({
                                 placeholder='Comma separated'
                             />
                         </div>
+
+                        {/* Group Selection */}
+                        {availableGroups.length > 0 && (
+                            <div className='grid grid-cols-4 items-start gap-4'>
+                                <Label className='text-right pt-2'>
+                                    Groups
+                                </Label>
+                                <div className='col-span-3 space-y-2 max-h-[150px] overflow-y-auto rounded-md border p-3'>
+                                    {availableGroups.map((group) => (
+                                        <div
+                                            key={group.id}
+                                            className='flex items-center gap-2'
+                                        >
+                                            <Checkbox
+                                                id={`group-${group.id}`}
+                                                checked={selectedGroupIds.includes(
+                                                    group.id,
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleGroup(group.id)
+                                                }
+                                            />
+                                            <label
+                                                htmlFor={`group-${group.id}`}
+                                                className='flex items-center gap-2 text-sm cursor-pointer'
+                                            >
+                                                <span
+                                                    className='w-2 h-2 rounded-full'
+                                                    style={{
+                                                        backgroundColor:
+                                                            group.color ||
+                                                            '#6366f1',
+                                                    }}
+                                                />
+                                                {group.name}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button type='submit' disabled={loading}>

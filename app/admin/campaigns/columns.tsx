@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { Clock } from 'lucide-react';
 import { SerializedCampaign } from './types';
 import { ActionsCell } from './actions-cell';
 
@@ -25,6 +26,34 @@ export const columns: ColumnDef<SerializedCampaign>[] = [
         header: 'Status',
         cell: ({ row }) => {
             const status = row.getValue('status') as string;
+            const scheduledAt = row.original.scheduledAt;
+
+            if (status === 'SCHEDULED' && scheduledAt) {
+                const date = new Date(scheduledAt);
+                const formatted = date.toLocaleString('nl-NL', {
+                    timeZone: 'Europe/Amsterdam',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                });
+                return (
+                    <div className='flex items-center gap-2'>
+                        <Badge
+                            variant='outline'
+                            className='bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800'
+                        >
+                            <Clock className='mr-1 h-3 w-3' />
+                            SCHEDULED
+                        </Badge>
+                        <span className='text-xs text-muted-foreground'>
+                            {formatted}
+                        </span>
+                    </div>
+                );
+            }
+
             return (
                 <Badge
                     variant={

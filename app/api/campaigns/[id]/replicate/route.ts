@@ -22,7 +22,9 @@ export async function POST(
             data: {
                 name: `${campaign.name} (Copy)`,
                 subject: campaign.subject,
+                previewText: campaign.previewText,
                 htmlContent: campaign.htmlContent,
+                theme: campaign.theme ?? undefined,
                 status: 'DRAFT',
             },
         });

@@ -81,6 +81,7 @@ export async function POST(request: Request) {
             status,
             source,
             consentGiven,
+            groupIds,
         } = body;
 
         const contact = await prisma.contact.create({
@@ -93,7 +94,11 @@ export async function POST(request: Request) {
                 source: source || 'MANUAL',
                 consentGiven: consentGiven || false,
                 consentDate: consentGiven ? new Date() : null,
+                groups: groupIds?.length
+                    ? { connect: groupIds.map((id: number) => ({ id })) }
+                    : undefined,
             },
+            include: { groups: true },
         });
         return NextResponse.json(contact);
     } catch (error) {
