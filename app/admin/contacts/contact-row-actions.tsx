@@ -79,7 +79,7 @@ export function ContactRowActions({ contact }: ContactRowActionsProps) {
 
             if (!res.ok) throw new Error('Failed to delete contact');
 
-            router.refresh();
+            router.push('/admin/contacts');
         } catch (error) {
             console.error(error);
             alert('Failed to delete contact');

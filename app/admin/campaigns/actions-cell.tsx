@@ -57,7 +57,7 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
             await fetch(`/api/campaigns/${campaign.id}`, {
                 method: 'DELETE',
             });
-            router.refresh();
+            router.push('/admin/campaigns');
         } catch (e) {
             alert('Failed to delete');
         }
