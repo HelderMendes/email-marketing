@@ -52,7 +52,6 @@ export function EmailFooter() {
                         from this list.
                     </p>
                 </div>
-                U
                 <div className='text-[13px]'>
                     <p>
                         <Link

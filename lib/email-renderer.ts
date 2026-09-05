@@ -288,7 +288,7 @@ export function renderEmailHtml(
       </td>
           <tr>
       <td align="center" style="background-color: ${footerBg}; color: ${footerText}; padding: 0 20px 20px; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-        <p style="margin: 0; font-size: 13px; color: ${footerCopyrightColor || 'rgba(0,0,0,0.6)'};">Copyright &copy; ${new Date().getFullYear()} Look Out Mode, All rights reserved.</p>
+        <p style="margin: 0; font-size: 13px; color: ${footerLinkColor || 'rgba(250,250,250,5)'};">Copyright &copy; ${new Date().getFullYear()} Look Out Mode, All rights reserved.</p>
 
     </tr>
 
