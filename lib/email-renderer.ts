@@ -113,9 +113,11 @@ export function renderEmailHtml(
         process.env.NEXT_PUBLIC_APP_URL ||
         'https://lookoutmode.nl';
 
-    // Always use production URL for static assets (images) in emails
-    // This ensures images load correctly even when testing from localhost
-    const assetUrl = 'https://lookoutmode.nl';
+    // For email images, always use production Vercel URL (not localhost)
+    const assetUrl =
+        process.env.NODE_ENV === 'development'
+            ? 'https://email-marketing-blush.vercel.app'
+            : appUrl;
 
     const logoFile =
         footerLogo === 'black'
