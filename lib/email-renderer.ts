@@ -113,6 +113,10 @@ export function renderEmailHtml(
         process.env.NEXT_PUBLIC_APP_URL ||
         'https://lookoutmode.nl';
 
+    // Always use production URL for static assets (images) in emails
+    // This ensures images load correctly even when testing from localhost
+    const assetUrl = 'https://lookoutmode.nl';
+
     const logoFile =
         footerLogo === 'black'
             ? 'logo_LookoutMode_black.png'
@@ -264,7 +268,7 @@ export function renderEmailHtml(
         
         <div style="margin: 0 auto;">
           <a href="https://lookoutmode.nl/" target="_blank" style="text-decoration: none;">
-            <img src="${appUrl}/${logoFile}" alt="LOOK OUT mode" width="370" style="display: block; margin: 0 auto; max-width: 100%; height: auto; border: none;" />
+            <img src="${assetUrl}/${logoFile}" alt="LOOK OUT mode" width="370" style="display: block; margin: 0 auto; max-width: 100%; height: auto; border: none;" />
           </a>
         </div>
         
