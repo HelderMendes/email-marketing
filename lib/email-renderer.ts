@@ -116,7 +116,7 @@ export function renderEmailHtml(
     const logoFile =
         footerLogo === 'black'
             ? 'logo_LookoutMode_black.png'
-            : 'logo_LookoutMode.webp';
+            : 'logo_LookoutMode.png';
 
     // Use outer background color if content bg is transparent
     const contentBg =
