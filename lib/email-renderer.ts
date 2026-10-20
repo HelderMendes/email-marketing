@@ -40,7 +40,7 @@ export interface EmailTheme {
 
 export const defaultTheme: EmailTheme = {
     backgroundColor: '#f6f9fc',
-    textColor: '#333333',
+    textColor: '#ffffff',
     linkColor: '#0070f3',
     headerBg: '#ffffff',
     headerText: '#111111',
@@ -294,7 +294,7 @@ export function renderEmailHtml(
       </td>
           <tr>
       <td align="center" style="background-color: ${footerBg}; color: ${footerText}; padding: 0 20px 20px; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-        <p style="margin: 0; font-size: 13px; color: ${footerLinkColor || 'rgba(250,250,250,5)'};">Copyright &copy; ${new Date().getFullYear()} Look Out Mode, All rights reserved.</p>
+        <p style="margin: 0; font-size: 13px; color: ${footerLinkColor || 'rgba(250,250,250, 1)'};">Copyright &copy; ${new Date().getFullYear()} Look Out Mode, All rights reserved.</p>
 
     </tr>
 
