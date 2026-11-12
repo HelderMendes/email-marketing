@@ -14,4 +14,6 @@ export type SerializedContact = Omit<
     updatedAt: string;
     consentDate: string | null;
     groups?: ContactGroup[];
+    lastClickedCampaign: string | null;
+    totalClicks: number;
 };

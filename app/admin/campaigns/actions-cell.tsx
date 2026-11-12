@@ -78,7 +78,7 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
     };
 
     return (
-        <>
+        <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant='ghost' className='h-8 w-8 p-0'>
@@ -104,7 +104,7 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
                     {campaign.status === 'SENT' && (
                         <DropdownMenuItem asChild>
                             <Link
-                                href={`/admin/campaigns/${campaign.id}/analytics`}
+                                href={`/admin/campaigns/${campaign.id}/analytics/`}
                             >
                                 <BarChart3 className='mr-2 h-4 w-4' /> Analytics
                             </Link>
@@ -166,6 +166,6 @@ export function ActionsCell({ campaign }: { campaign: SerializedCampaign }) {
                 onOpenChange={setIsSendOpen}
                 onComplete={() => router.refresh()}
             />
-        </>
+        </div>
     );
 }

@@ -178,6 +178,39 @@ export const columns: ColumnDef<SerializedContact>[] = [
         },
     },
     {
+        accessorKey: 'lastClickedCampaign',
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant='ghost'
+                    onClick={() =>
+                        column.toggleSorting(column.getIsSorted() === 'asc')
+                    }
+                >
+                    Last camp.
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
+                </Button>
+            );
+        },
+        cell: ({ row }) => row.original.lastClickedCampaign ?? '—',
+    },
+    {
+        accessorKey: 'totalClicks',
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant='ghost'
+                    onClick={() =>
+                        column.toggleSorting(column.getIsSorted() === 'asc')
+                    }
+                >
+                    Clicks
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
+                </Button>
+            );
+        },
+    },
+    {
         id: 'actions',
         cell: ({ row }) => <ContactRowActions contact={row.original} />,
     },

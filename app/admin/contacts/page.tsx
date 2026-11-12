@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { SerializedContact } from './types';
 import { ContactsClient } from './contacts-client';
@@ -10,6 +11,74 @@ type ContactGroup = {
     name: string;
     color: string | null;
 };
+
+const CLICK_SORT_FIELDS = ['lastClickedCampaign', 'totalClicks'];
+
+const contactInclude = {
+    groups: {
+        select: { id: true, name: true, color: true },
+    },
+} satisfies Prisma.ContactInclude;
+
+type ClickStats = {
+    lastClickedCampaign: string | null;
+    lastClickedAt: number;
+    totalClicks: number;
+};
+
+async function getClickStats(
+    contactWhere: Prisma.ContactWhereInput,
+): Promise<Map<number, ClickStats>> {
+    const emails = await prisma.campaignEmail.findMany({
+        where: { clickCount: { gt: 0 }, contact: contactWhere },
+        select: {
+            contactId: true,
+            clickCount: true,
+            clickedAt: true,
+            campaign: { select: { name: true } },
+            clicks: {
+                select: { clickedAt: true },
+                orderBy: { clickedAt: 'desc' },
+                take: 1,
+            },
+        },
+    });
+
+    const stats = new Map<number, ClickStats>();
+    for (const email of emails) {
+        const clickedAt =
+            (email.clicks[0]?.clickedAt ?? email.clickedAt)?.getTime() ?? 0;
+        const current = stats.get(email.contactId) ?? {
+            lastClickedCampaign: null,
+            lastClickedAt: -1,
+            totalClicks: 0,
+        };
+        current.totalClicks += email.clickCount;
+        if (clickedAt > current.lastClickedAt) {
+            current.lastClickedAt = clickedAt;
+            current.lastClickedCampaign = email.campaign.name;
+        }
+        stats.set(email.contactId, current);
+    }
+    return stats;
+}
+
+function compareClickStats(
+    a: ClickStats | undefined,
+    b: ClickStats | undefined,
+    sortField: string,
+    sortOrder: 'asc' | 'desc',
+): number {
+    const direction = sortOrder === 'asc' ? 1 : -1;
+    if (sortField === 'totalClicks') {
+        return ((a?.totalClicks ?? 0) - (b?.totalClicks ?? 0)) * direction;
+    }
+    const nameA = a?.lastClickedCampaign;
+    const nameB = b?.lastClickedCampaign;
+    // Contacts without clicks always go last
+    if (!nameA || !nameB) return nameA ? -1 : nameB ? 1 : 0;
+    return nameA.localeCompare(nameB, 'nl', { numeric: true }) * direction;
+}
 
 async function getContacts(
     page: number,
@@ -57,20 +126,57 @@ async function getContacts(
         where.groups = { some: { id: groupId } };
     }
 
-    const [contacts, totalCount] = await Promise.all([
-        prisma.contact.findMany({
-            where,
-            include: {
-                groups: {
-                    select: { id: true, name: true, color: true },
-                },
-            },
-            orderBy,
-            skip,
-            take: pageSize,
-        }),
-        prisma.contact.count({ where }),
-    ]);
+    let contacts: Prisma.ContactGetPayload<{
+        include: typeof contactInclude;
+    }>[];
+    let totalCount: number;
+    let clickStats: Map<number, ClickStats>;
+
+    if (CLICK_SORT_FIELDS.includes(sortField)) {
+        // Click stats are computed, so sort all matching ids in memory
+        const [allContacts, stats] = await Promise.all([
+            prisma.contact.findMany({
+                where,
+                select: { id: true },
+                orderBy: { createdAt: 'desc' },
+            }),
+            getClickStats(where),
+        ]);
+        const pageIds = allContacts
+            .map((c) => c.id)
+            .sort((a, b) =>
+                compareClickStats(
+                    stats.get(a),
+                    stats.get(b),
+                    sortField,
+                    sortOrder,
+                ),
+            )
+            .slice(skip, skip + pageSize);
+        const pageContacts = await prisma.contact.findMany({
+            where: { id: { in: pageIds } },
+            include: contactInclude,
+        });
+        contacts = pageIds.flatMap((id) =>
+            pageContacts.filter((c) => c.id === id),
+        );
+        totalCount = allContacts.length;
+        clickStats = stats;
+    } else {
+        [contacts, totalCount] = await Promise.all([
+            prisma.contact.findMany({
+                where,
+                include: contactInclude,
+                orderBy,
+                skip,
+                take: pageSize,
+            }),
+            prisma.contact.count({ where }),
+        ]);
+        clickStats = await getClickStats({
+            id: { in: contacts.map((c) => c.id) },
+        });
+    }
 
     const serializedData = contacts.map((contact) => ({
         ...contact,
@@ -80,6 +186,9 @@ async function getContacts(
             ? contact.consentDate.toISOString()
             : null,
         groups: contact.groups as ContactGroup[],
+        lastClickedCampaign:
+            clickStats.get(contact.id)?.lastClickedCampaign ?? null,
+        totalClicks: clickStats.get(contact.id)?.totalClicks ?? 0,
     })) as SerializedContact[];
 
     return { data: serializedData, totalCount };

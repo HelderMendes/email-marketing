@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width,initial-scale=1.0" name="viewport" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 900px;
+      height: 831px;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- STITCH_SVG_START:ANIMATION_2 class="fixed inset-0 w-full h-full" -->
+  <div class="fixed inset-0 w-full h-full" id="animated-svg-ANIMATION_2" style="display:block;"><svg height="100%"
+      style="background-color: #050806; font-family: 'Montserrat', 'Inter', system-ui, -apple-system, sans-serif;"
+      viewbox="-162 72 1404 1296" width="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Glow Filters -->
+        <filter height="200%" id="neon-glow-primary" width="200%" x="-50%" y="-50%">
+          <fegaussianblur result="blur1" stddeviation="4"></fegaussianblur>
+          <fegaussianblur result="blur2" stddeviation="12"></fegaussianblur>
+          <fegaussianblur result="blur3" stddeviation="25"></fegaussianblur>
+          <fegaussianblur result="blur4" stddeviation="45"></fegaussianblur>
+          <femerge>
+            <femergenode in="blur4"></femergenode>
+            <femergenode in="blur3"></femergenode>
+            <femergenode in="blur2"></femergenode>
+            <femergenode in="blur1"></femergenode>
+            <femergenode in="SourceGraphic"></femergenode>
+          </femerge>
+        </filter>
+        <filter height="180%" id="neon-glow-subtle" width="180%" x="-40%" y="-40%">
+          <fegaussianblur result="sblur1" stddeviation="2"></fegaussianblur>
+          <fegaussianblur result="sblur2" stddeviation="8"></fegaussianblur>
+          <fegaussianblur result="sblur3" stddeviation="18"></fegaussianblur>
+          <femerge>
+            <femergenode in="sblur3"></femergenode>
+            <femergenode in="sblur2"></femergenode>
+            <femergenode in="sblur1"></femergenode>
+            <femergenode in="SourceGraphic"></femergenode>
+          </femerge>
+        </filter>
+        <lineargradient id="bgGlow" x1="0%" x2="0%" y1="0%" y2="100%">
+          <stop offset="0%" stop-color="#00220d" stop-opacity="0.3"></stop>
+          <stop offset="50%" stop-color="#003815" stop-opacity="0.15"></stop>
+          <stop offset="100%" stop-color="#001205" stop-opacity="0.4"></stop>
+        </lineargradient>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&amp;family=Rajdhani:wght@600;700&amp;display=swap');
+
+          .neon-tube {
+            font-family: 'Oswald', -apple-system, BlinkMacSystemFont, sans-serif;
+            text-anchor: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          }
+
+          /* Base flicker animations */
+          @keyframes neonPulseSlow {
+
+            0%,
+            100% {
+              opacity: 0.98;
+              filter: drop-shadow(0 0 10px #18ff6d) drop-shadow(0 0 25px #00e657) drop-shadow(0 0 50px rgba(0, 230, 87, 0.6));
+            }
+
+            50% {
+              opacity: 0.88;
+              filter: drop-shadow(0 0 7px #18ff6d) drop-shadow(0 0 18px #00b344) drop-shadow(0 0 35px rgba(0, 179, 68, 0.4));
+            }
+          }
+
+          @keyframes tubeFlickerTop {
+
+            0%,
+            19.999%,
+            22%,
+            62.999%,
+            64%,
+            64.999%,
+            70%,
+            100% {
+              opacity: 1;
+            }
+
+            20%,
+            21.999%,
+            63%,
+            63.999%,
+            65%,
+            69.999% {
+              opacity: 0.35;
+            }
+          }
+
+          @keyframes tubeFlickerMid {
+
+            0%,
+            100% {
+              opacity: 1;
+            }
+
+            41%,
+            41.5% {
+              opacity: 0.45;
+            }
+
+            42%,
+            42.8% {
+              opacity: 0.95;
+            }
+
+            43%,
+            43.4% {
+              opacity: 0.3;
+            }
+
+            76%,
+            76.5% {
+              opacity: 0.5;
+            }
+
+            77%,
+            77.2% {
+              opacity: 1;
+            }
+          }
+
+          @keyframes tubeFlickerBar {
+
+            0%,
+            100% {
+              opacity: 0.95;
+              filter: drop-shadow(0 0 8px #25ff75) drop-shadow(0 0 20px #00e657);
+            }
+
+            50% {
+              opacity: 0.75;
+              filter: drop-shadow(0 0 4px #25ff75) drop-shadow(0 0 12px #00b344);
+            }
+
+            88% {
+              opacity: 0.4;
+            }
+
+            89% {
+              opacity: 0.95;
+            }
+          }
+
+          @keyframes ampersandTwitch {
+
+            0%,
+            85%,
+            100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+
+            86% {
+              opacity: 0.25;
+              transform: scale(0.99);
+            }
+
+            87% {
+              opacity: 0.9;
+            }
+
+            88% {
+              opacity: 0.2;
+            }
+
+            89% {
+              opacity: 1;
+            }
+          }
+
+          .glow-layer-top {
+            animation: tubeFlickerTop 7s infinite ease-in-out;
+          }
+
+          .glow-layer-mid {
+            animation: tubeFlickerMid 5.5s infinite ease-in-out, neonPulseSlow 3s infinite alternate;
+          }
+
+          .glow-ampersand {
+            animation: ampersandTwitch 4.2s infinite ease-in-out;
+            transform-origin: center;
+          }
+
+          .glow-bar {
+            animation: tubeFlickerBar 3.6s infinite ease-in-out;
+          }
+
+          /* Scanline / atmosphere texture */
+          .backdrop-grid {
+            background-image: radial-gradient(circle at 50% 50%, rgba(20, 60, 30, 0.15) 0%, transparent 80%);
+          }
+        </style>
+      </defs>
+      <!-- Ambient Dark Background with Subtle Vignette -->
+      <rect fill="#030604" height="1440" width="1404" x="-162"></rect>
+      <rect fill="url(#bgGlow)" height="1440" width="1404" x="-162"></rect>
+      <!-- Background wall ambient reflection -->
+      <!-- <circle cx="540" cy="540" fill="#00e657" filter="url(#neon-glow-primary)" opacity="0.05" r="420"></circle> -->
+      <!-- ================= TOP TITLE: LOOK OUTLET ================= -->
+      <!-- Outline hollow neon font effect as seen in original reference -->
+      <g transform="translate(0, 182)">
+        <g class="glow-layer-top" transform="translate(0, 0)">
+          <!-- Deep Outer Atmosphere Glow -->
+          <text class="neon-tube" fill="none" filter="url(#neon-glow-primary)" font-size="170" font-weight="600"
+            line-height="3" letter-spacing="0.14em" opacity="0.3" stroke="#00e657" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="14" x="540" y="195">LOOK OUTLET</text>
+          <!-- Mid Glow Neon Outline -->
+          <text class="neon-tube" fill="none" filter="url(#neon-glow-subtle)" font-size="170" font-weight="600"
+            line-height="3" letter-spacing="0.14em" opacity="0.85" stroke="#10ff68" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="7" x="540" y="195">LOOK OUTLET</text>
+          <!-- Core Bright Tube Stroke -->
+          <text class="neon-tube" fill="#061209" font-size="170" font-weight="600" letter-spacing="0.14em"
+            line-height="3" stroke="#b8ffd3" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" x="540"
+            y="195">LOOK
+            OUTLET</text>
+        </g>
+      </g>
+      <!-- ================= MIDDLE MAIN DATES: VRIJDAG 20 & ZATERDAG 21 NOV 2026 ================= -->
+      <!-- Solid white core with intense emerald green halo/glow, matching exact photo -->
+      <g transform="translate(0, 222)">
+        <g class="glow-layer-mid">
+          <!-- VRIJDAG 20 -->
+          <!-- Glow Layers -->
+          <text class="neon-tube" fill="#00ff5f" filter="url(#neon-glow-primary)" font-size="142" font-weight="700"
+            letter-spacing="0.04em" opacity="0.35" stroke="#00ff5f" stroke-linejoin="round" stroke-width="26" x="540"
+            y="425">VRIJDAG 20</text>
+          <text class="neon-tube" fill="#33ff80" filter="url(#neon-glow-subtle)" font-size="142" font-weight="700"
+            letter-spacing="0.04em" opacity="0.85" stroke="#33ff80" stroke-linejoin="round" stroke-width="12" x="540"
+            y="425">VRIJDAG 20</text>
+          <text class="neon-tube" fill="#ffffff" font-size="142" font-weight="700" letter-spacing="0.04em"
+            stroke="#ffffff" stroke-linejoin="round" stroke-width="2" x="540" y="425">VRIJDAG 20</text>
+          <!-- AMPERSAND (&) -->
+          <g class="glow-ampersand">
+            <text class="neon-tube" fill="#00ff5f" filter="url(#neon-glow-primary)" font-size="68" font-weight="600"
+              opacity="0.4" stroke="#00ff5f" stroke-linejoin="round" stroke-width="16" x="540" y="525">&amp;</text>
+            <text class="neon-tube" fill="#33ff80" filter="url(#neon-glow-subtle)" font-size="68" font-weight="600"
+              opacity="0.85" stroke="#33ff80" stroke-linejoin="round" stroke-width="8" x="540" y="525">&amp;</text>
+            <text class="neon-tube" fill="#ffffff" font-size="68" font-weight="600" stroke="#ffffff"
+              stroke-linejoin="round" stroke-width="1.5" x="540" y="525">&amp;</text>
+          </g>
+          <!-- ZATERDAG 21 -->
+          <text class="neon-tube" fill="#00ff5f" filter="url(#neon-glow-primary)" font-size="140" font-weight="700"
+            letter-spacing="0.04em" opacity="0.35" stroke="#00ff5f" stroke-linejoin="round" stroke-width="26" x="540"
+            y="660">ZATERDAG 21</text>
+          <text class="neon-tube" fill="#33ff80" filter="url(#neon-glow-subtle)" font-size="140" font-weight="700"
+            letter-spacing="0.04em" opacity="0.85" stroke="#33ff80" stroke-linejoin="round" stroke-width="12" x="540"
+            y="660">ZATERDAG 21</text>
+          <text class="neon-tube" fill="#ffffff" font-size="140" font-weight="700" letter-spacing="0.04em"
+            stroke="#ffffff" stroke-linejoin="round" stroke-width="2" x="540" y="660">ZATERDAG 21</text>
+          <!-- NOV 2026 -->
+          <text class="neon-tube" fill="#00ff5f" filter="url(#neon-glow-primary)" font-size="152" font-weight="700"
+            letter-spacing="0.05em" opacity="0.35" stroke="#00ff5f" stroke-linejoin="round" stroke-width="28" x="540"
+            y="825">NOV 2026</text>
+          <text class="neon-tube" fill="#33ff80" filter="url(#neon-glow-subtle)" font-size="152" font-weight="700"
+            letter-spacing="0.05em" opacity="0.85" stroke="#33ff80" stroke-linejoin="round" stroke-width="14" x="540"
+            y="825">NOV 2026</text>
+          <text class="neon-tube" fill="#ffffff" font-size="152" font-weight="700" letter-spacing="0.05em"
+            stroke="#ffffff" stroke-linejoin="round" stroke-width="2" x="540" y="825">NOV 2026</text>
+        </g>
+      </g>
+
+      <!-- ================= BOTTOM HORIZONTAL NEON BAR ================= -->
+      <g transform="translate(0, 282)">
+        <g class="glow-bar">
+          <!-- Outer ambient beam (lengthened x1/x2) -->
+          <line filter="url(#neon-glow-primary)" opacity="0.3" stroke="#00e657" stroke-linecap="round" stroke-width="28"
+            x1="120" x2="960" y1="935" y2="935"></line>
+          <!-- Mid glow beam (lengthened x1/x2) -->
+          <line filter="url(#neon-glow-subtle)" opacity="0.85" stroke="#19ff6d" stroke-linecap="round" stroke-width="14"
+            x1="120" x2="960" y1="935" y2="935"></line>
+          <!-- Pure hot core tube (lengthened x1/x2) -->
+          <line stroke="#d2ffdf" stroke-linecap="round" stroke-width="6" x1="120" x2="960" y1="935" y2="935"></line>
+        </g>
+      </g>
+
+      <!-- Subtle glass gas reflections / electrode tips at bar ends -->
+      <!-- <circle cx="160" cy="935" fill="#ffffff" opacity="0.9" r="5"></circle>
+      <circle cx="920" cy="935" fill="#ffffff" opacity="0.9" r="5"></circle> -->
+    </svg></div><!-- STITCH_SVG_END:ANIMATION_2 -->
+</body>
+
+</html>
